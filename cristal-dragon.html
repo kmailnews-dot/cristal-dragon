@@ -1535,13 +1535,28 @@ function renderStatic(){
   g.setTransform(view.k,0,0,view.k,0,0);
   let seed=987654321;
   const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
-  const bg=g.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#0a0718'); bg.addColorStop(0.45,'#181034'); bg.addColorStop(1,'#0b0820');
+  // 1. DECOR PEINT : base sombre + degrade radial centre clair (#1a1230 -> #0a0612)
+  g.fillStyle='#0a0612'; g.fillRect(0,0,W,H);
+  const bg=g.createRadialGradient(200,330,40,200,330,340);
+  bg.addColorStop(0,'#1a1230'); bg.addColorStop(0.55,'#120c26'); bg.addColorStop(1,'#0a0612');
   g.fillStyle=bg; g.fillRect(0,0,W,H);
+  // Etoiles fines (ambiance espace conservee, discret pour le contraste)
   for(let i=0;i<46;i++){
-    const x=rnd()*W, y=rnd()*H*0.8, r=0.5+rnd()*1.2, a=0.15+rnd()*0.4;
+    const x=rnd()*W, y=rnd()*H*0.8, r=0.5+rnd()*1.0, a=0.12+rnd()*0.3;
     g.fillStyle='rgba(190,200,255,'+a.toFixed(3)+')';
     g.beginPath(); g.arc(x,y,r,0,TAU); g.fill();
+  }
+  // 6. Motifs cristal discrets en surimpression (losanges + eclats, alpha faible)
+  const cryCols=['79,216,255','255,95,208','160,107,255','255,209,102'];
+  g.lineWidth=1;
+  for(let i=0;i<12;i++){
+    const x=30+rnd()*340, y=60+rnd()*480, s=6+rnd()*10;
+    const col=cryCols[i%4], a=(0.05+rnd()*0.06).toFixed(3);
+    g.strokeStyle='rgba('+col+','+a+')';
+    g.beginPath(); g.moveTo(x,y-s); g.lineTo(x+s*0.7,y); g.lineTo(x,y+s); g.lineTo(x-s*0.7,y); g.closePath(); g.stroke();
+    // petit eclat : croix fine
+    g.strokeStyle='rgba(235,238,255,'+(a/2).toFixed(3)+')';
+    g.beginPath(); g.moveTo(x-s,y); g.lineTo(x+s,y); g.moveTo(x,y-s); g.lineTo(x,y+s); g.stroke();
   }
   g.strokeStyle='rgba(255,209,102,.05)'; g.lineWidth=2;
   g.beginPath(); g.arc(200,330,118,0,TAU); g.stroke();
@@ -1550,6 +1565,14 @@ function renderStatic(){
   for(let i=0;i<6;i++){ const a=i*TAU/6;
     g.beginPath(); g.moveTo(200+Math.cos(a)*72,330+Math.sin(a)*72);
     g.lineTo(200+Math.cos(a)*118,330+Math.sin(a)*118); g.stroke(); }
+  // 7. MARQUAGES AU SOL : lignes violettes subtiles (opacite 0.15-0.25)
+  g.strokeStyle='rgba(160,107,255,.20)'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(330,258); g.lineTo(330,640); g.stroke(); // bord lane
+  g.beginPath(); g.moveTo(386,240); g.lineTo(386,640); g.stroke(); // bord exterieur lane
+  g.strokeStyle='rgba(160,107,255,.15)';
+  g.beginPath(); g.moveTo(119,602); g.lineTo(281,602); g.stroke(); // zone flippers
+  g.beginPath(); g.moveTo(152,640); g.lineTo(128,700); g.stroke();
+  g.beginPath(); g.moveTo(248,640); g.lineTo(272,700); g.stroke(); // entonnoir drain
   g.fillStyle='rgba(10,6,24,.6)';
   g.beginPath(); g.moveTo(0,700); g.lineTo(0,595); g.lineTo(32,652); g.lineTo(70,600); g.lineTo(112,700); g.closePath(); g.fill();
   g.beginPath(); g.moveTo(400,700); g.lineTo(400,585); g.lineTo(366,648); g.lineTo(326,597); g.lineTo(288,700); g.closePath(); g.fill();
@@ -1577,26 +1600,34 @@ function renderStatic(){
   decoC(312,700,342,597,372,['rgba(216,180,255,.95)','rgba(109,88,246,.78)'],'rgba(216,180,255,.8)');
   decoC(288,700,304,638,322,['rgba(125,233,255,.9)','rgba(59,130,246,.7)'],'rgba(125,233,255,.75)');
   g.restore();
+  // 5. ZONE DE DRAIN : entonnoir sombre + lueur rouge (existant, renforce)
+  g.fillStyle='rgba(0,0,0,.62)';
+  g.beginPath(); g.moveTo(152,640); g.lineTo(248,640); g.lineTo(200,700); g.closePath(); g.fill();
   const pg=g.createLinearGradient(0,640,0,700);
   pg.addColorStop(0,'rgba(0,0,0,0)'); pg.addColorStop(0.4,'rgba(5,2,10,.85)'); pg.addColorStop(1,'rgba(20,4,10,.95)');
   g.fillStyle=pg; g.fillRect(152,640,96,60);
   const rg=g.createRadialGradient(200,692,4,200,692,50);
-  rg.addColorStop(0,'rgba(255,60,80,.5)'); rg.addColorStop(1,'rgba(255,60,80,0)');
+  rg.addColorStop(0,'rgba(255,60,80,.55)'); rg.addColorStop(1,'rgba(255,60,80,0)');
   g.fillStyle=rg; g.beginPath(); g.ellipse(200,690,42,16,0,0,TAU); g.fill();
   g.fillStyle='rgba(216,210,232,.5)';
   g.beginPath(); g.moveTo(163,652); g.lineTo(179,652); g.lineTo(171,676); g.closePath(); g.fill();
   g.beginPath(); g.moveTo(221,652); g.lineTo(237,652); g.lineTo(229,676); g.closePath(); g.fill();
+  // 4. LANE DE LANCEMENT (cote droit, x=336) : teinte + separateur visuel
+  g.fillStyle='rgba(255,255,255,.025)'; g.fillRect(338,240,42,410);
   g.fillStyle='#241d3f'; g.fillRect(338,650,42,50);
   g.strokeStyle='rgba(122,106,212,.4)'; g.lineWidth=2; g.strokeRect(338,650,42,50);
+  g.strokeStyle='rgba(255,209,102,.18)'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(336,258); g.lineTo(336,640); g.stroke();
   g.save();
   g.strokeStyle='rgba(125,233,255,.4)'; g.lineWidth=4; g.lineCap='round'; g.lineJoin='round';
   g.shadowColor='rgba(79,216,255,.8)'; g.shadowBlur=8;
   for(let i=0;i<3;i++){ const y=470+i*44;
     g.beginPath(); g.moveTo(346,y+13); g.lineTo(358,y); g.lineTo(370,y+13); g.stroke(); }
   g.restore();
+  // 2+3. RAILS METALLIQUES + ARC SUPERIEUR (memes coordonnees que addWall = physique inchangee)
   g.lineCap='round'; g.lineJoin='round';
-  g.strokeStyle='#332a52'; g.lineWidth=8;
-  g.beginPath(); g.arc(200,200,180,Math.PI,TAU); g.stroke();
+  // passe base : gris metallique #5a5a7a, 8px (rails lateraux + lane + drain)
+  g.strokeStyle='#5a5a7a'; g.lineWidth=8;
   g.beginPath();
   g.moveTo(20,200); g.lineTo(20,500); g.lineTo(119,602);
   g.moveTo(380,200); g.lineTo(380,652);
@@ -1604,8 +1635,15 @@ function renderStatic(){
   g.moveTo(336,500); g.lineTo(281,602);
   g.moveTo(338,648); g.lineTo(378,648);
   g.stroke();
-  g.strokeStyle='rgba(138,122,224,.4)'; g.lineWidth=2.5;
+  // 3. ARC SUPERIEUR renforce : violet #a06bff 5px + reflet
+  g.strokeStyle='#3a2a5a'; g.lineWidth=9;
   g.beginPath(); g.arc(200,200,180,Math.PI,TAU); g.stroke();
+  g.strokeStyle='#a06bff'; g.lineWidth=5;
+  g.beginPath(); g.arc(200,200,180,Math.PI,TAU); g.stroke();
+  g.strokeStyle='rgba(221,200,255,.65)'; g.lineWidth=1.5;
+  g.beginPath(); g.arc(200,200,180,Math.PI,TAU); g.stroke();
+  // passe reflet : #8a8ab0, 2.5px sur les rails droits
+  g.strokeStyle='rgba(138,138,176,.65)'; g.lineWidth=2.5;
   g.beginPath();
   g.moveTo(20,200); g.lineTo(20,500); g.lineTo(119,602);
   g.moveTo(380,200); g.lineTo(380,652);
