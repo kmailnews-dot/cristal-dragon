@@ -59,6 +59,11 @@ body{
   text-align:center; font-size:calc(var(--u)*13px); font-weight:600; color:#e8ecff;
   text-shadow:0 1px 6px #000, 0 0 14px rgba(0,0,0,.8); opacity:0; transition:opacity .45s; pointer-events:none; }
 #hint.on{ opacity:.9; }
+#trainingBanner,#modeBanner{ position:absolute; z-index:6; top:calc(var(--u)*64px); left:50%; transform:translateX(-50%);
+  padding:calc(var(--u)*4px) calc(var(--u)*12px); font-size:calc(var(--u)*11px); font-weight:800; letter-spacing:.18em;
+  color:#0a0716; background:linear-gradient(180deg,#ffe29a,#ffb347);
+  border-radius:999px; box-shadow:0 0 calc(var(--u)*12px) rgba(255,190,60,.6);
+  pointer-events:none; white-space:nowrap; }
 
 /* ---------- Panneaux ---------- */
 #overlay{ position:absolute; inset:0; z-index:10; display:flex; align-items:center; justify-content:center;
@@ -155,6 +160,8 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
     <button id="btnFull" class="hudBtn" aria-label="Plein écran">⛶</button>
     <button id="btnPause" class="hudBtn" aria-label="Pause"><i></i><i></i></button>
     <div id="hint"></div>
+    <div id="trainingBanner" style="display:none">MODE ENTRAÎNEMENT</div>
+    <div id="modeBanner" style="display:none"></div>
   </div>
   <div id="overlay">
     <section class="panel" data-p="menu">
@@ -168,7 +175,15 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
       Clavier : ← → + Espace · R recommencer · N mute · P pause.</p>
       <div class="best" id="mBest">Record : 0</div>
       <div class="best" id="mGames">Parties jouées : 0</div>
-      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="about">A propos</button></div>
+      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="about">A propos</button></div>
+    </section>
+    <section class="panel" data-p="modes">
+      <h1>MODES DE JEU</h1>
+      <div class="sub">Choisis ton défi</div>
+      <p class="rule">🛡️ <b>Classique</b> : 50 000 pts · 5 billes · durée libre</p>
+      <p class="rule">⏰ <b>Chrono</b> : 30 000 pts en 60 s max · 3 billes</p>
+      <p class="rule">💀 <b>Survie</b> : 20 000 pts · 1 bille · bumpers à 500 pts</p>
+      <div class="btnrow"><button class="btn" data-action="mode-classic">🛡️ Classique</button><button class="btn" data-action="mode-chrono">⏰ Chrono</button><button class="btn" data-action="mode-survie">💀 Survie</button><button class="btn ghost" data-action="menu">Retour</button></div>
     </section>
     <section class="panel" data-p="stats">
       <h1>STATISTIQUES</h1>
@@ -349,7 +364,7 @@ function loadGamesPlayed(){
 }
 function saveGamesPlayed(v){ try{ localStorage.setItem('cristalDragonGamesPlayed', String(v)); }catch(e){} }
 function loadStats(){
-  const d={victories:0,defeats:0,totalScore:0,totalTimeSec:0,totalDrains:0,bossKills:0,bonusCount:0,perfectCount:0};
+  const d={victories:0,defeats:0,totalScore:0,totalTimeSec:0,totalDrains:0,bossKills:0,bonusCount:0,perfectCount:0,cacheBonusCount:0,bestTime:0,longestGame:0,trainingGames:0,flawlessWins:0};
   try{
     const v=JSON.parse(localStorage.getItem('cristalDragonStats'));
     if(v&&typeof v==='object'){
@@ -436,7 +451,7 @@ function renderHistory(){
   }
 }
 function loadAchievements(){
-  const d={premierPas:false,premiereVictoire:false,comboMaster:false,chasseurDragon:false,roiFlipper:false,riche:false,perseverant:false,perfect:false,collectionneur:false,legende:false};
+  const d={premierPas:false,premiereVictoire:false,comboMaster:false,chasseurDragon:false,roiFlipper:false,riche:false,perseverant:false,perfect:false,collectionneur:false,legende:false,debutant:false,habitue:false,veteran:false,score10000:false,score25000:false,score100000:false,milliardaire:false,chanceux:false,tresChanceux:false,sansFaute:false,rapide:false,eclair:false,longuePartie:false,marathon:false,boss5:false,boss25:false,combo25:false,runes50:false,perfect50:false,modeTraining:false};
   try{
     const v=JSON.parse(localStorage.getItem('cristalDragonAchievements'));
     if(v&&typeof v==='object'){ for(const k in d){ if(v[k]===true) d[k]=true; } }
@@ -452,7 +467,7 @@ const SAVE_KEY='cristalDragonSave';
 function saveGame(){
   if(state!=='play'&&state!=='pause') return false;
   try{
-    const d={v:VERSION, score:Math.floor(score), balls:balls, mult:mult, multT:multT,
+    const d={v:VERSION, mode:gameMode, score:Math.floor(score), balls:balls, mult:mult, multT:multT,
       comboMult:comboMult, comboT:comboT, bonus:!!bonus, bonusT:bonusT,
       perfectShown:!!perfectShown,
       runes:runes.map(r=>({up:!!r.up, resetT:+r.resetT||0})),
@@ -468,6 +483,8 @@ function loadGame(){
     if(!d||typeof d!=='object'||d.v!==VERSION) return null;
     const num=(v,a,b)=>typeof v==='number'&&isFinite(v)&&v>=a&&v<=b;
     if(!num(d.score,0,1e9)||!num(d.balls,1,C.BALLS)) return null;
+    if(d.mode===undefined) d.mode='classic';
+    if(d.mode!=='classic'&&d.mode!=='chrono'&&d.mode!=='survie') return null;
     if(!num(d.mult,1,99)||!num(d.multT,0,1e6)) return null;
     if(!num(d.comboMult,1,99)||!num(d.comboT,0,1e6)) return null;
     if(typeof d.bonus!=='boolean'||!num(d.bonusT,0,1e6)) return null;
@@ -483,7 +500,9 @@ function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 function applySave(){
   const d=loadGame();
   if(!d) return false;
+  gameMode=d.mode||'classic';
   resetGame();
+  if(gameMode==='chrono') chronoT=Math.max(0,MODES.chrono.time-Math.max(0,d.elapsed));
   score=Math.floor(d.score); balls=Math.floor(d.balls);
   mult=d.mult; multT=d.multT; comboMult=d.comboMult; comboT=d.comboT;
   bonus=d.bonus; bonusT=d.bonusT; perfectShown=d.perfectShown;
@@ -503,6 +522,15 @@ let state='menu';
 let score=0, balls=C.BALLS, best=loadBest(), gamesPlayed=loadGamesPlayed(), mult=1, multT=0, comboMult=1, comboT=0;
 let cacheMult=1, cacheT=0;
 let perfectShown=false;
+let trainingMode=false;
+/* ---------- Modes de jeu : Classique = comportement historique inchangé.
+   GOAL et C restent intacts ; l'objectif courant vit dans `goal`. ---------- */
+const MODES={
+  classic:{nom:'CLASSIQUE', goal:50000, balls:5, bumper:50, time:0},
+  chrono:{nom:'CHRONO', goal:30000, balls:3, bumper:50, time:60},
+  survie:{nom:'SURVIE', goal:20000, balls:1, bumper:500, time:0}
+};
+let gameMode='classic', goal=GOAL, chronoT=0, chronoShown=-1;
 let bonus=false, bonusT=0;
 let top5=loadTop5(), topSaved=false;
 let stats=loadStats();
@@ -560,7 +588,7 @@ function extraScoreFixed(base,x,y){
   // Points FIXES : ni mult, ni combo (contrairement à addScore/scoreHit)
   score+=base; scoreDirty=true;
   if(x!==undefined) floater('+'+base,x,y,false);
-  if(score>=GOAL && state==='play'){ sndVictory(); buzz(60); setState('victory'); }
+  if(score>=goal && state==='play'){ sndVictory(); buzz(60); setState('victory'); }
 }
 function physicsExtras(dt){
   for(let k=extraBalls.length-1;k>=0;k--){
@@ -728,7 +756,7 @@ function drawBackground(){
 
 /* Fenêtre debug pour le runtime */
 window.debugState=()=>JSON.stringify({
-  jeu:NOM, version:VERSION, etat:state, score, billes:balls, record:best,
+  jeu:NOM, version:VERSION, etat:state, mode:gameMode, score, billes:balls, record:best,
   mult, multT:+multT.toFixed(1), comboMult, comboT:+comboT.toFixed(1), muted,
   bille:ball?{x:Math.round(ball.x),y:Math.round(ball.y),vx:Math.round(ball.vx),vy:Math.round(ball.vy),etat:ball.state}:null,
   lanceur:{charge:plunger.charging,power:+plunger.power.toFixed(2)},
@@ -1436,7 +1464,7 @@ function collideAll(){
       b.flash=1;
       if(b.cd<=0){
         b.cd=C.BUMPER.CD;
-        scoreHit(C.BUMPER.SCORE,b.x,b.y-34);
+        scoreHit(MODES[gameMode].bumper,b.x,b.y-34);
         tryCacheBonus(b.x,b.y);
         sndBumper(b.note);
         burst(b.x,b.y,b.hue,16,290);
@@ -1502,7 +1530,7 @@ function addScore(base,x,y,big){
   const v=base*mult*cacheMult;
   score+=v; scoreDirty=true;
   if(x!==undefined) floater('+'+v,x,y,big);
-  if(score>=GOAL && state==='play'){
+  if(score>=goal && state==='play'){
     sndVictory();
     buzz(60);
     setState('victory');
@@ -1512,6 +1540,7 @@ function tryCacheBonus(x,y){
   if(cacheT>0) return;
   if(Math.random()<0.05){
     cacheMult=3; cacheT=5;
+    stats.cacheBonusCount++; saveStats(stats);
     goldFlash=goldFlashM;
     floater('+BONUS CACHE !',200,300,true);
     burst(200,300,'g',20,300);
@@ -1570,6 +1599,7 @@ function onDrain(){
   sndDrain(); buzz(60);
   redFlash=0.7;
   burst(clamp(ball.x,140,260),672,'e',12,240); shake(5,0.25);
+  if(trainingMode){ ball=null; setHint(-1); respawnT=0.9; return; }
   balls--; ballsDirty=true;
   gameDrains++; stats.totalDrains++; saveStats(stats);
   ball=null;
@@ -1604,7 +1634,7 @@ function resetBallAtLane(){
 function resetGame(){
   clearSave();
   sndMusicStop();
-  score=0; balls=C.BALLS; mult=1; multT=0; comboMult=1; comboT=0; cacheMult=1; cacheT=0; perfectShown=false;
+  score=0; balls=MODES[gameMode].balls; goal=MODES[gameMode].goal; chronoT=MODES[gameMode].time; chronoShown=-1; mult=1; multT=0; comboMult=1; comboT=0; cacheMult=1; cacheT=0; perfectShown=false;
   gameComboMax=1;
   scoreDirty=true; ballsDirty=true;
   everLaunched=false;
@@ -1631,9 +1661,26 @@ function resetGame(){
 }
 function startGame(){
   if(state==='menu'||state==='victory'||state==='defeat'){ gamesPlayed++; saveGamesPlayed(gamesPlayed); }
+  if(trainingMode){ stats.trainingGames++; saveStats(stats); }
   resetGame(); gameStartTime=time; gameDrains=0; setState('play');
+  if(trainingMode) checkAchievements();
 }
 
+function syncTrainingBanner(){
+  var tb=document.getElementById('trainingBanner');
+  if(tb) tb.style.display=(trainingMode&&(state==='play'||state==='pause'))?'':'none';
+}
+function syncModeBanner(){
+  var mb=document.getElementById('modeBanner');
+  if(!mb) return;
+  const show=(gameMode!=='classic')&&(state==='play'||state==='pause');
+  mb.style.display=show?'':'none';
+  if(show){
+    mb.textContent=gameMode==='chrono'
+      ? ('⏰ CHRONO · '+Math.max(0,Math.ceil(chronoT))+'s · obj '+fmt(goal))
+      : ('💀 '+MODES[gameMode].nom+' · obj '+fmt(goal));
+  }
+}
 function setHint(m){
   if(m===hintMode) return;
   hintMode=m;
@@ -1666,14 +1713,23 @@ function setState(s){
       victoryT=0; victoryFwT=0.25; initVictoryCrystals();
       if(!REDUCED) goldFlash=0.5; // 5. flash doré initial 0.5s
     } else { victoryT=0; victoryFwT=0; clearVictoryCrystals(); }
-    if(s==='victory') stats.victories++; else stats.defeats++;
-    stats.totalScore+=Math.floor(score);
-    stats.totalTimeSec+=Math.max(0,Math.round(endTime-gameStartTime));
-    saveStats(stats);
-    addToHistory({score:Math.floor(score),resultat:s,date:Date.now(),duree:Math.max(0,Math.round(endTime-gameStartTime)),comboMax:gameComboMax});
-    if(!topSaved){ topSaved=true; addToTop5(score); }
-    if(score>best){ best=score; saveBest(best); el.vRec.style.display='block'; }
-    else el.vRec.style.display='none';
+    if(!trainingMode){
+      if(s==='victory') stats.victories++; else stats.defeats++;
+      stats.totalScore+=Math.floor(score);
+      stats.totalTimeSec+=Math.max(0,Math.round(endTime-gameStartTime));
+      { const dur=Math.max(0,Math.round(endTime-gameStartTime));
+        if(dur>stats.longestGame) stats.longestGame=dur;
+        if(s==='victory'){
+          if(stats.bestTime<=0||dur<stats.bestTime) stats.bestTime=dur;
+          if(gameDrains===0) stats.flawlessWins=(stats.flawlessWins||0)+1;
+        } }
+      saveStats(stats);
+      addToHistory({score:Math.floor(score),resultat:s,date:Date.now(),duree:Math.max(0,Math.round(endTime-gameStartTime)),comboMax:gameComboMax});
+      if(!topSaved){ topSaved=true; addToTop5(score); }
+      if(score>best){ best=score; saveBest(best); el.vRec.style.display='block'; }
+      else el.vRec.style.display='none';
+      checkAchievements();
+    } else { el.vRec.style.display='none'; }
     el.vScore.textContent=fmt(score);
     el.dScore.textContent=fmt(score);
     if(el.vGames) el.vGames.textContent='Partie n°'+fmt(gamesPlayed);
@@ -1681,8 +1737,9 @@ function setState(s){
     el.dBest.textContent='Record : '+fmt(best);
     renderTop5(el.vTop);
     renderTop5(el.dTop);
-    checkAchievements();
   }
+  syncTrainingBanner();
+  syncModeBanner();
 }
 
 function fmtDur(sec){
@@ -1716,7 +1773,27 @@ const ACH_DEFS=[
   {k:'perseverant', nom:'Persévérant', desc:'Jouer 50 parties', cond:()=>gamesPlayed>=50},
   {k:'perfect', nom:'Perfect !', desc:'Déclencher PERFECT 10 fois', cond:()=>stats.perfectCount>=10},
   {k:'collectionneur', nom:'Collectionneur', desc:'Activer les 3 runes 25 fois', cond:()=>stats.bonusCount>=25},
-  {k:'legende', nom:'Légende', desc:'Gagner 10 parties', cond:()=>stats.victories>=10}
+  {k:'legende', nom:'Légende', desc:'Gagner 10 parties', cond:()=>stats.victories>=10},
+  {k:'debutant', nom:'Débutant', desc:'Jouer 5 parties', cond:()=>gamesPlayed>=5},
+  {k:'habitue', nom:'Habitué', desc:'Jouer 10 parties', cond:()=>gamesPlayed>=10},
+  {k:'veteran', nom:'Vétéran', desc:'Jouer 100 parties', cond:()=>gamesPlayed>=100},
+  {k:'score10000', nom:'Score 10 000', desc:'Atteindre 10 000 pts en une partie', cond:()=>score>=10000||best>=10000},
+  {k:'score25000', nom:'Score 25 000', desc:'Atteindre 25 000 pts en une partie', cond:()=>score>=25000||best>=25000},
+  {k:'score100000', nom:'Score 100 000', desc:'Atteindre 100 000 pts en une partie', cond:()=>score>=100000||best>=100000},
+  {k:'milliardaire', nom:'Milliardaire', desc:'1 000 000 pts de score total', cond:()=>stats.totalScore>=1000000},
+  {k:'chanceux', nom:'Chanceux', desc:'Déclencher 5 bonus cachés', cond:()=>stats.cacheBonusCount>=5},
+  {k:'tresChanceux', nom:'Très chanceux', desc:'Déclencher 25 bonus cachés', cond:()=>stats.cacheBonusCount>=25},
+  {k:'sansFaute', nom:'Sans faute', desc:'Gagner une partie sans perdre de bille', cond:()=>stats.flawlessWins>=1},
+  {k:'rapide', nom:'Rapide', desc:'Gagner une partie en moins de 60 secondes', cond:()=>stats.bestTime>0&&stats.bestTime<60},
+  {k:'eclair', nom:'Éclair', desc:'Gagner une partie en moins de 30 secondes', cond:()=>stats.bestTime>0&&stats.bestTime<30},
+  {k:'longuePartie', nom:'Longue partie', desc:'Jouer une partie de plus de 3 minutes', cond:()=>stats.longestGame>=180},
+  {k:'marathon', nom:'Marathon', desc:'Jouer une partie de plus de 5 minutes', cond:()=>stats.longestGame>=300},
+  {k:'boss5', nom:'Boss x5', desc:'Tuer le boss 5 fois', cond:()=>stats.bossKills>=5},
+  {k:'boss25', nom:'Boss x25', desc:'Tuer le boss 25 fois', cond:()=>stats.bossKills>=25},
+  {k:'combo25', nom:'Combo x5 25 fois', desc:'Atteindre le combo max 25 fois', cond:()=>stats.perfectCount>=25},
+  {k:'runes50', nom:'Runes 50 fois', desc:'Activer les 3 runes 50 fois', cond:()=>stats.bonusCount>=50},
+  {k:'perfect50', nom:'PERFECT 50 fois', desc:'Déclencher PERFECT 50 fois', cond:()=>stats.perfectCount>=50},
+  {k:'modeTraining', nom:'Modes', desc:'Jouer 1 fois en mode entraînement', cond:()=>stats.trainingGames>=1}
 ];
 let achQueue=[], achShowing=false;
 function notifyAchievement(nom){
@@ -1737,6 +1814,7 @@ function notifyAchievement(nom){
 function checkAchievements(){
   let changed=false;
   for(const d of ACH_DEFS){
+    if(trainingMode&&d.k!=='modeTraining') continue;
     if(!achievements[d.k] && d.cond()){ achievements[d.k]=true; changed=true; notifyAchievement(d.nom); }
   }
   if(changed) saveAchievements(achievements);
@@ -1877,6 +1955,12 @@ function update(dt){
     if(comboT>0){ comboT-=dt; if(comboT<=0){ comboT=0; comboMult=1; perfectShown=false; } }
     if(cacheT>0){ cacheT-=dt; if(cacheT<=0){ cacheT=0; cacheMult=1; } }
     if(bonus){ bonusT-=dt; if(bonusT<=0){ bonusT=0; bonus=false; } }
+    if(gameMode==='chrono'&&chronoT>0){
+      chronoT-=dt;
+      const cs=Math.max(0,Math.ceil(chronoT));
+      if(cs!==chronoShown){ chronoShown=cs; syncModeBanner(); }
+      if(chronoT<=0){ setState('defeat'); return; }
+    }
     mobileObstacle.angle+=OBSTACLE.speed*dt;
     mobileObstacle.x=OBSTACLE.cx+Math.cos(mobileObstacle.angle)*OBSTACLE.dist;
     mobileObstacle.y=OBSTACLE.cy+Math.sin(mobileObstacle.angle)*OBSTACLE.dist;
@@ -2384,8 +2468,8 @@ function drawCache(){
 function updateHUD(){
   if(scoreDirty){
     scoreEl.textContent=fmt(score);
-    goalFill.style.width=Math.min(100,score/GOAL*100).toFixed(1)+'%';
-    el.goalWrap.classList.toggle('hot', score/GOAL>=0.8);
+    goalFill.style.width=Math.min(100,score/goal*100).toFixed(1)+'%';
+    el.goalWrap.classList.toggle('hot', score/goal>=0.8);
     if(!REDUCED){
       scoreEl.classList.remove('pop');
       void scoreEl.offsetWidth;
@@ -2474,7 +2558,13 @@ overlay.addEventListener('click',e=>{
   if(!b) return;
   Snd.ensure(); sndUi();
   const a=b.dataset.action;
-  if(a==='play'||a==='restart') startGame();
+  if(a==='play'){ trainingMode=false; gameMode='classic'; startGame(); }
+  else if(a==='restart') startGame();
+  else if(a==='training'){ trainingMode=true; startGame(); }
+  else if(a==='modes') setState('modes');
+  else if(a==='mode-classic'){ gameMode='classic'; trainingMode=false; startGame(); }
+  else if(a==='mode-chrono'){ gameMode='chrono'; trainingMode=false; startGame(); }
+  else if(a==='mode-survie'){ gameMode='survie'; trainingMode=false; startGame(); }
   else if(a==='resume') setState('play');
   else if(a==='stats') setState('stats');
   else if(a==='achievements') setState('achievements');
@@ -2483,7 +2573,7 @@ overlay.addEventListener('click',e=>{
   else if(a==='resumeAsk'){ if(loadGame()!==null) setState('resume'); else { const br=document.getElementById('btnResume'); if(br) br.style.display='none'; } }
   else if(a==='resumeYes'){ if(applySave()) setState('play'); else { clearSave(); setState('menu'); } }
   else if(a==='resumeNo'){ clearSave(); setState('menu'); }
-  else if(a==='menu'){ saveTutorialSeen(true); tutorialSeen=true; setState('menu'); }
+  else if(a==='menu'){ saveTutorialSeen(true); tutorialSeen=true; trainingMode=false; setState('menu'); }
 });
 btnPause.addEventListener('click',e=>{
   e.stopPropagation();
