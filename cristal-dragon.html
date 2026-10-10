@@ -2078,7 +2078,10 @@ function drawEye(){
   ctx.beginPath(); ctx.ellipse(18,-5,18,10,0,0,TAU); ctx.fill(); ctx.stroke(); ctx.restore();
   ctx.restore();
   const spr=eye.flash>0.05?SPR.eyeF:SPR.eye;
-  ctx.drawImage(spr,eye.x-58.5,eye.y-(83*o)/2,117,83*o);
+  let breath=REDUCED?1:(1+0.03*Math.sin(time*1.5));
+  if(eye.deadT>0) breath=1;
+  const bh2=83*o*breath;
+  ctx.drawImage(spr,eye.x-58.5,eye.y-bh2/2,117,bh2);
   // Halo doré permanent (discret, pulse via time) ; le halo flash prend le dessus si eye.flash>0
   // Phase 2 (hp<=2) : halo rouge agressif, même animation
   if(eye.flash<=0){
