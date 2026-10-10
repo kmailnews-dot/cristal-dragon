@@ -156,6 +156,11 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
 #shopList .skinPrice{ color:#ffd166; font-weight:800; }
 #shopList .btn{ padding:calc(var(--u)*8px) calc(var(--u)*16px); font-size:calc(var(--u)*13px); }
 #shopList .owned{ color:#7dffb0; font-weight:800; font-size:calc(var(--u)*12px); }
+/* ---------- Quêtes quotidiennes : liste + statut ---------- */
+#questList{ text-align:left; }
+#questList li{ margin-bottom:calc(var(--u)*10px); font-size:calc(var(--u)*13px); }
+#questList .questDesc{ color:#9aa3d8; margin:calc(var(--u)*2px) 0; }
+#questList .questTodo{ color:#ffd166; font-weight:800; font-size:calc(var(--u)*12px); }
 </style>
 </head>
 <body>
@@ -188,13 +193,19 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
       <div class="best" id="mBest">Record : 0</div>
       <div class="best" id="mGames">Parties jouées : 0</div>
       <div class="best gold" id="mCoins">Pièces : 0</div>
-      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="about">A propos</button></div>
+      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="quests" id="btnQuests">Quêtes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="about">A propos</button></div>
     </section>
     <section class="panel" data-p="shop">
       <h1>BOUTIQUE</h1>
       <div class="sub">Skins de bille</div>
       <div class="best gold" id="shopCoins">Pièces : 0</div>
       <ol class="top5" id="shopList"></ol>
+      <div class="btnrow"><button class="btn ghost" data-action="menu">Retour</button></div>
+    </section>
+    <section class="panel" data-p="quests">
+      <h1>QUÊTES</h1>
+      <div class="sub" id="questDate">Quêtes du jour</div>
+      <ol class="top5" id="questList"></ol>
       <div class="btnrow"><button class="btn ghost" data-action="menu">Retour</button></div>
     </section>
     <section class="panel" data-p="modes">
@@ -476,6 +487,105 @@ function renderShop(){
     list.appendChild(li);
   }
 }
+/* ---------- Quêtes quotidiennes (localStorage cristalDragonQuests, reset date locale) ---------- */
+const QUEST_DEFS=[
+  {id:'joueur', nom:'Joueur du jour', desc:'Jouer 5 parties', cible:5, recompense:50},
+  {id:'chasseur', nom:'Chasseur', desc:'Tuer 2 boss', cible:2, recompense:100},
+  {id:'performant', nom:'Performant', desc:'Atteindre 30 000 pts en une partie', cible:1, recompense:75}
+];
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
+function freshQuests(){ return QUEST_DEFS.map(q=>({id:q.id, progress:0, done:false, seen:true})); }
+function loadQuests(){
+  const t=todayStr();
+  try{
+    const v=JSON.parse(localStorage.getItem('cristalDragonQuests'));
+    if(v&&v.date===t&&v.quests&&typeof v.quests==='object'){
+      return QUEST_DEFS.map(q=>{
+        const s=v.quests[q.id]||{};
+        const p=(typeof s.progress==='number'&&s.progress>=0)?Math.min(q.cible,Math.floor(s.progress)):0;
+        const done=(s.done===true)||p>=q.cible;
+        return {id:q.id, progress:done?q.cible:p, done:done, seen:s.seen!==false};
+      });
+    }
+  }catch(e){}
+  return freshQuests();
+}
+function questMap(){ const o={}; for(const q of quests) o[q.id]={progress:q.progress, done:q.done, seen:q.seen}; return o; }
+function saveQuests(){ try{ localStorage.setItem('cristalDragonQuests', JSON.stringify({date:questDate, quests:questMap()})); }catch(e){} }
+function refreshQuestsDay(){
+  const t=todayStr();
+  if(t!==questDate){ questDate=t; quests=freshQuests(); saveQuests(); }
+}
+function questById(id){ for(const q of quests) if(q.id===id) return q; return null; }
+function questDef(id){ for(const q of QUEST_DEFS) if(q.id===id) return q; return null; }
+function notifyQuest(txt){
+  achQueue.push(txt);
+  if(achShowing) return;
+  achShowing=true;
+  const showNext=()=>{
+    const n=achQueue.shift();
+    if(!n){ achShowing=false; return; }
+    let b=document.getElementById('achBanner');
+    if(!b){ b=document.createElement('div'); b.id='achBanner'; document.getElementById('app').appendChild(b); }
+    b.textContent='📜 QUÊTE ACCOMPLIE : '+n;
+    b.classList.add('show');
+    setTimeout(()=>{ b.classList.remove('show'); setTimeout(showNext,400); },3000);
+  };
+  showNext();
+}
+function bumpQuest(id,n){
+  const q=questById(id), d=questDef(id);
+  if(!q||!d||q.done) return;
+  q.progress=Math.min(d.cible, q.progress+Math.max(1,Math.floor(n||1)));
+  if(q.progress>=d.cible){
+    q.done=true; q.seen=false;
+    addCoins(d.recompense);
+    floater('+'+d.recompense+' pièces',200,300,true);
+    notifyQuest(d.nom+' (+'+d.recompense+' 🪙)');
+  }
+  saveQuests(); refreshQuestBadge();
+}
+function checkQuests(evt){
+  refreshQuestsDay();
+  if(evt==='boss'){ bumpQuest('chasseur',1); return; }
+  if(evt==='gameend'){
+    bumpQuest('joueur',1);
+    if(score>=30000) bumpQuest('performant',1);
+  }
+}
+function refreshQuestBadge(){
+  const b=document.getElementById('btnQuests');
+  if(!b) return;
+  let news=false;
+  for(const q of quests){ if(q.done&&!q.seen){ news=true; break; } }
+  b.textContent=news?'Quêtes !':'Quêtes';
+}
+function renderQuests(){
+  refreshQuestsDay();
+  const dateEl=document.getElementById('questDate');
+  if(dateEl) dateEl.textContent='Quêtes du '+questDate;
+  const list=document.getElementById('questList');
+  if(list){
+    list.innerHTML='';
+    for(const d of QUEST_DEFS){
+      const q=questById(d.id);
+      const li=document.createElement('li');
+      const nm=document.createElement('div'); nm.className='skinName'; nm.textContent='📜 '+d.nom;
+      const ds=document.createElement('div'); ds.className='questDesc';
+      ds.textContent=d.desc+' — '+q.progress+'/'+d.cible+' · +'+d.recompense+' 🪙';
+      const st=document.createElement('span'); st.className=q.done?'owned':'questTodo';
+      st.textContent=q.done?'Terminée ✓':'En cours…';
+      li.appendChild(nm); li.appendChild(ds); li.appendChild(st);
+      list.appendChild(li);
+      if(q.done) q.seen=true;
+    }
+    saveQuests();
+  }
+  refreshQuestBadge();
+}
 function loadStats(){
   const d={victories:0,defeats:0,totalScore:0,totalTimeSec:0,totalDrains:0,bossKills:0,bonusCount:0,perfectCount:0,cacheBonusCount:0,bestTime:0,longestGame:0,trainingGames:0,flawlessWins:0};
   try{
@@ -653,6 +763,7 @@ const POWERUP={SPAWN:15, LIFE:8, DUR:5, R:14, COLLECT:30};
 let top5=loadTop5(), topSaved=false;
 let stats=loadStats();
 let coins=loadCoins(), currentSkin=loadSkin();
+let questDate=todayStr(), quests=loadQuests();
 let gameComboMax=1;
 let achievements=loadAchievements();
 let gameStartTime=0, gameDrains=0;
@@ -1633,6 +1744,7 @@ function collideAll(){
       if(eye.hp<=0){
         eye.deadT=5;
         stats.bossKills++; saveStats(stats);
+        checkQuests('boss');
         if(!trainingMode){ addCoins(50); floater('+50 pièces',eye.x,eye.y-64,true); }
         scoreHit(1500,eye.x,eye.y+32,true);
         sndVictory();
@@ -1879,11 +1991,12 @@ function setState(s){
   Snd.ambient(s==='play');
   if(s==='play') sndMusicStart(); else sndMusicStop();
   scoreEl.classList.toggle('low', s==='play' && balls===1);
-  if(s==='menu'){ el.menuBest.textContent='Record : '+fmt(best); if(el.menuGames) el.menuGames.textContent='Parties jouées : '+fmt(gamesPlayed); refreshCoinsDisplays(); const br=document.getElementById('btnResume'); if(br) br.style.display=(loadGame()!==null?'':'none'); victoryT=0; victoryFwT=0; clearVictoryCrystals(); }
+  if(s==='menu'){ el.menuBest.textContent='Record : '+fmt(best); if(el.menuGames) el.menuGames.textContent='Parties jouées : '+fmt(gamesPlayed); refreshCoinsDisplays(); refreshQuestsDay(); refreshQuestBadge(); const br=document.getElementById('btnResume'); if(br) br.style.display=(loadGame()!==null?'':'none'); victoryT=0; victoryFwT=0; clearVictoryCrystals(); }
   if(s==='resume'){ const d=loadGame(); const ri=document.getElementById('resumeInfo'); if(ri) ri.textContent=d?('Score : '+fmt(d.score)+' · Billes : '+d.balls):''; }
   if(s==='pause'){ saveGame(); }
   if(s==='stats'){ renderStats(); }
   if(s==='shop'){ renderShop(); }
+  if(s==='quests'){ renderQuests(); }
   if(s==='achievements'){ renderAchievements(); }
   if(s==='about'){ renderAbout(); }
   if(s==='victory'||s==='defeat'){
@@ -1911,6 +2024,7 @@ function setState(s){
       else el.vRec.style.display='none';
       checkAchievements();
     } else { el.vRec.style.display='none'; }
+    checkQuests('gameend');
     el.vScore.textContent=fmt(score);
     el.dScore.textContent=fmt(score);
     { const vc=document.getElementById('vCoins'); if(vc) vc.textContent=trainingMode?'':('+'+(s==='victory'?10:5)+' pièces 🪙 · Total : '+fmt(coins));
@@ -2863,6 +2977,7 @@ overlay.addEventListener('click',e=>{
   else if(a==='resume') setState('play');
   else if(a==='stats') setState('stats');
   else if(a==='shop') setState('shop');
+  else if(a==='quests') setState('quests');
   else if(a==='buy-skin'){
     const k=b.dataset.skin;
     if(k&&SKINS[k]&&!isSkinOwned(k)&&spendCoins(SKINS[k].prix)){ ownSkin(k); currentSkin=k; saveSkin(k); }
