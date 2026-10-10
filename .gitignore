@@ -1,0 +1,22 @@
+node_modules/
+screenshots/
+*.tar.gz
+*.bak-*
+tests/traces/
+
+# Backups de tests
+tests-opencode/*-backup.js
+tests-opencode/*-original.js
+tests-opencode/*-before-restart-fix.js
+tests/*-backup.js
+tests/*-original.js
+tests/*-before-restart-fix.js
+
+# Backups archives (non versionnes)
+backups/
+*.bak-*
+*.beforetrail
+
+# Rapports temporaires
+megabot-rapport.txt
+flipper-rapport.txt
