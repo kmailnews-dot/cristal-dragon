@@ -8,9 +8,6 @@ tests/traces/
 tests/*-backup.js
 tests/*-original.js
 tests/*-before-restart-fix.js
-tests/*-backup.js
-tests/*-original.js
-tests/*-before-restart-fix.js
 
 # Backups archives (non versionnes)
 backups/
@@ -20,9 +17,6 @@ backups/
 # Rapports temporaires
 megabot-rapport.txt
 flipper-rapport.txt
-
-# Sous-depot Git (etincelle-QA)
-etincelle-QA/
 
 # Ancien dossier de tests (avant renommage)
 tests-old/
