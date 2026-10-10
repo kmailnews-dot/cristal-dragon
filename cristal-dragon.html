@@ -501,6 +501,7 @@ let muted=(()=>{ try{ return localStorage.getItem('cristalDragonMuted')==='1'; }
 const view={k:1};
 let state='menu';
 let score=0, balls=C.BALLS, best=loadBest(), gamesPlayed=loadGamesPlayed(), mult=1, multT=0, comboMult=1, comboT=0;
+let cacheMult=1, cacheT=0;
 let perfectShown=false;
 let bonus=false, bonusT=0;
 let top5=loadTop5(), topSaved=false;
@@ -961,6 +962,7 @@ function sndUi(){ if(Snd.ok('ui',0.05)) Snd.tone(880,0.06,'sine',0.08,660); }
 function sndPop(){ if(Snd.ok('fw',0.05)){ Snd.noise(0.16,0.1,500+Math.random()*1400,180); Snd.tone(160+Math.random()*260,0.14,'sine',0.05,70); } }
 function sndBonus(){ Snd.tone(523,0.12,'triangle',0.16); Snd.tone(659,0.12,'triangle',0.16,null,0.11); Snd.tone(784,0.22,'triangle',0.18,null,0.22); }
 function sndPerfect(){ Snd.tone(784,0.09,'triangle',0.16); Snd.tone(988,0.09,'triangle',0.16,null,0.07); Snd.tone(1175,0.09,'triangle',0.16,null,0.14); Snd.tone(1568,0.2,'triangle',0.18,null,0.21); }
+function sndCache(){ Snd.tone(659,0.09,'triangle',0.16); Snd.tone(880,0.09,'triangle',0.16,null,0.07); Snd.tone(1318,0.09,'triangle',0.16,null,0.14); Snd.tone(1760,0.2,'triangle',0.18,null,0.21); }
 function sndWake(i){ Snd.tone([262,330,392,523,659,784][i]||440,0.14,'triangle',0.07); }
 /* ---------- Musique de fond (boucle pentatonique discrète) ---------- */
 const MUSIC_NOTES=[262,294,330,392,440,392,330,294];
@@ -1435,6 +1437,7 @@ function collideAll(){
       if(b.cd<=0){
         b.cd=C.BUMPER.CD;
         scoreHit(C.BUMPER.SCORE,b.x,b.y-34);
+        tryCacheBonus(b.x,b.y);
         sndBumper(b.note);
         burst(b.x,b.y,b.hue,16,290);
         burst(b.x,b.y,'w',6,210);
@@ -1496,13 +1499,23 @@ function collideAll(){
 
 /* ---------- Logique de jeu ---------- */
 function addScore(base,x,y,big){
-  const v=base*mult;
+  const v=base*mult*cacheMult;
   score+=v; scoreDirty=true;
   if(x!==undefined) floater('+'+v,x,y,big);
   if(score>=GOAL && state==='play'){
     sndVictory();
     buzz(60);
     setState('victory');
+  }
+}
+function tryCacheBonus(x,y){
+  if(cacheT>0) return;
+  if(Math.random()<0.05){
+    cacheMult=3; cacheT=5;
+    goldFlash=goldFlashM;
+    floater('+BONUS CACHE !',200,300,true);
+    burst(200,300,'g',20,300);
+    sndCache();
   }
 }
 function scoreHit(base,x,y,big){
@@ -1591,7 +1604,7 @@ function resetBallAtLane(){
 function resetGame(){
   clearSave();
   sndMusicStop();
-  score=0; balls=C.BALLS; mult=1; multT=0; comboMult=1; comboT=0; perfectShown=false;
+  score=0; balls=C.BALLS; mult=1; multT=0; comboMult=1; comboT=0; cacheMult=1; cacheT=0; perfectShown=false;
   gameComboMax=1;
   scoreDirty=true; ballsDirty=true;
   everLaunched=false;
@@ -1862,6 +1875,7 @@ function update(dt){
     if(!ball && respawnT>0){ respawnT-=dt; if(respawnT<=0) spawnBall(); }
     if(multT>0){ multT-=dt; if(multT<=0){ multT=0; mult=1; } }
     if(comboT>0){ comboT-=dt; if(comboT<=0){ comboT=0; comboMult=1; perfectShown=false; } }
+    if(cacheT>0){ cacheT-=dt; if(cacheT<=0){ cacheT=0; cacheMult=1; } }
     if(bonus){ bonusT-=dt; if(bonusT<=0){ bonusT=0; bonus=false; } }
     mobileObstacle.angle+=OBSTACLE.speed*dt;
     mobileObstacle.x=OBSTACLE.cx+Math.cos(mobileObstacle.angle)*OBSTACLE.dist;
@@ -1949,6 +1963,7 @@ function render(alpha){
   drawFloats();
   drawMult();
   drawCombo();
+  drawCache();
   if(redFlash>0){
     const g=ctx.createLinearGradient(0,H-140,0,H);
     g.addColorStop(0,'rgba(255,40,60,0)');
@@ -2355,6 +2370,16 @@ function drawCombo(){
   ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=4;
   ctx.strokeText('COMBO ×'+comboMult,x,y);
   ctx.fillText('COMBO ×'+comboMult,x,y);
+}
+function drawCache(){
+  if(cacheT<=0) return;
+  const x=200, y=142;
+  ctx.textAlign='center';
+  ctx.font=F_MULT;
+  ctx.fillStyle='#ffe14d';
+  ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=4;
+  ctx.strokeText('CACHE x3',x,y);
+  ctx.fillText('CACHE x3',x,y);
 }
 function updateHUD(){
   if(scoreDirty){
