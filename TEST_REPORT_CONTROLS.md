@@ -1,6 +1,6 @@
 # QA COMMANDES — CRISTAL DRAGON V5
 
-Date : 2026-10-10T04:51:48.122Z
+Date : 2026-10-10T06:08:54.500Z
 
 ## Résultat
 
@@ -22,7 +22,7 @@ Date : 2026-10-10T04:51:48.122Z
 ✅ 9. 9. touche L = flipper droit
 ✅ 10. 10. touche M = flipper droit
 ✅ 11. 11. bille présente dans le lanceur
-✅ 12. 12. Space maintenu active la charge du lanceur — power=0.15
+✅ 12. 12. Space maintenu active la charge du lanceur — power=0.19
 ✅ 13. 13. relâchement Space conserve le jeu actif
 ✅ 14. 14. touche P met le jeu en pause
 ✅ 15. 15. touche P reprend le jeu
@@ -63,7 +63,7 @@ Aucune
     "x": 358,
     "y": 634,
     "vx": 0,
-    "vy": -6,
+    "vy": 19,
     "etat": "lane"
   },
   "lanceur": {

@@ -8,7 +8,7 @@ const { firefox } = require("playwright");
   const fail=(n,s)=>{F++;console.log("FAIL "+n+" "+s)};
 
   try {
-    await page.goto("file://"+process.cwd()+"/cristal-dragon-v5-opencode.html");
+    await page.goto("file://"+process.cwd()+"/cristal-dragon.html");
     await page.waitForTimeout(300);
 
     // Nettoyer le localStorage avant de commencer

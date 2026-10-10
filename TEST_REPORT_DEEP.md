@@ -1,6 +1,6 @@
 # QA APPROFONDI — CRISTAL DRAGON V5
 
-Date : 2026-10-10T04:51:35.264Z
+Date : 2026-10-10T06:08:41.453Z
 
 ## Résultat
 
@@ -16,7 +16,7 @@ Date : 2026-10-10T04:51:35.264Z
 ✅ 3. 3. 5 billes initiales
 ✅ 4. 4. bouton JOUER présent
 ✅ 5. 5. JOUER démarre la partie
-✅ 6. 6. bille active observée — 34/40 observations
+✅ 6. 6. bille active observée — 24/27 observations
 ✅ 7. 7. coordonnées et vitesse de bille valides
 ✅ 8. 8. Space conserve la partie en état play
 ✅ 9. 9. Space agit sur la physique
@@ -34,7 +34,7 @@ Date : 2026-10-10T04:51:35.264Z
 ✅ 21. 21. premier drain : 5 → 4 billes
 ✅ 22. 23. deuxième drain : 4 → 5 billes
 ✅ 23. 24. troisième drain déclenche la fin de partie — etat=play, billes=2
-✅ 24. 25. aucun état interne incohérent observé — 74 états
+✅ 24. 25. aucun état interne incohérent observé — 60 états
 ✅ 25. 24. mute fonctionne
 ✅ 26. 25. réactivation du son fonctionne
 ✅ 27. 26. stabilité sur 5 secondes — 93 états
@@ -51,7 +51,7 @@ Aucune
 
 ## Nombre d'états observés
 
-167
+153
 
 ## État final
 

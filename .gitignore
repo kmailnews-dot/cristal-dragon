@@ -5,9 +5,9 @@ screenshots/
 tests/traces/
 
 # Backups de tests
-tests-opencode/*-backup.js
-tests-opencode/*-original.js
-tests-opencode/*-before-restart-fix.js
+tests/*-backup.js
+tests/*-original.js
+tests/*-before-restart-fix.js
 tests/*-backup.js
 tests/*-original.js
 tests/*-before-restart-fix.js
@@ -20,3 +20,14 @@ backups/
 # Rapports temporaires
 megabot-rapport.txt
 flipper-rapport.txt
+
+# Sous-depot Git (etincelle-QA)
+etincelle-QA/
+
+# Ancien dossier de tests (avant renommage)
+tests-old/
+
+# Fichiers Etincelle (autre projet)
+eteincelle.html
+etincelle-QA/
+etincelle-v*.tar.gz

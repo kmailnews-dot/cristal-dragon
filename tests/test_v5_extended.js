@@ -35,7 +35,7 @@ const path = require('path');
     console.log(' CRISTAL DRAGON V5 — QA ÉTENDU');
     console.log('========================================\n');
 
-    await page.goto('file://'+path.resolve('cristal-dragon-v5.html'));
+    await page.goto('file://'+path.resolve('cristal-dragon.html'));
     await page.waitForTimeout(300);
 
     /* =========================================================
@@ -46,7 +46,7 @@ const path = require('path');
 
     ok('V5 chargé',s.jeu==='Cristal Dragon' && s.version==='v5');
     ok('menu initial',s.etat==='menu');
-    ok('3 billes initiales',s.billes===3);
+    ok('5 billes initiales',s.billes===5);
     ok('score initial nul',s.score===0);
     ok('multiplicateur initial',s.mult===1);
     ok('3 runes disponibles',Array.isArray(s.runes)&&s.runes.length===3&&s.runes.every(Boolean));
@@ -195,15 +195,19 @@ const path = require('path');
        6 — RUNES
        ========================================================= */
 
+        await page.waitForTimeout(200);
     const runeResult=await page.evaluate(()=>{
+      const savedResetT = runes.map(r=>r.resetT);
+      runes.forEach(r=>r.resetT=Infinity);
       const before=runes.map(r=>r.up);
-
       runes[0].up=false;
       const after=runes.map(r=>r.up);
-
       runes[0].up=true;
-      return {before,after,restored:runes.map(r=>r.up)};
+      const restored=runes.map(r=>r.up);
+      runes.forEach((r,i)=>r.resetT=savedResetT[i]);
+      return {before,after,restored};
     });
+    await page.waitForTimeout(200);
 
     ok('tableau runes accessible',
        Array.isArray(runeResult.before)&&runeResult.before.length===3);
@@ -241,7 +245,7 @@ const path = require('path');
     ok('resetGame -> multiplicateur 1',s.mult===1);
     ok('resetGame -> runes restaurées',
        Array.isArray(s.runes)&&s.runes.every(Boolean));
-    ok('resetGame -> 3 billes',s.billes===3);
+    ok('resetGame -> 5 billes',s.billes===5);
 
     /* =========================================================
        8 — PAUSE : PHYSIQUE IMMOBILE
@@ -289,7 +293,7 @@ const path = require('path');
     await page.waitForTimeout(50);
 
     let lives=[];
-    for(let i=0;i<3;i++){
+    for(let i=0;i<5;i++){
       await page.evaluate(()=>spawnBall());
       await page.waitForTimeout(50);
       await page.evaluate(()=>onDrain());
@@ -298,10 +302,10 @@ const path = require('path');
       lives.push({billes:q.billes,etat:q.etat});
     }
 
-    ok('drain 1 -> 2 billes',lives[0].billes===2);
-    ok('drain 2 -> 1 bille',lives[1].billes===1);
-    ok('drain 3 -> 0 bille',lives[2].billes===0);
-    ok('drain 3 -> defeat',lives[2].etat==='defeat');
+    ok('drain 1 -> 4 billes',lives[0].billes===4);
+    ok('drain 2 -> 3 billes',lives[1].billes===3);
+    ok('drain 3 -> 2 billes',lives[2].billes===2);
+    ok('drain 5 -> defeat',lives[4].etat==='defeat');
 
     /* =========================================================
        10 — RESTART APRÈS DÉFAITE
@@ -313,7 +317,7 @@ const path = require('path');
     s=await state();
 
     ok('R redémarre après défaite',s.etat==='play'||s.etat==='menu');
-    ok('R restaure 3 billes',s.billes===3);
+    ok('R restaure 5 billes',s.billes===5);
     ok('R restaure score nul',s.score===0);
     ok('R restaure runes',Array.isArray(s.runes)&&s.runes.every(Boolean));
 
@@ -379,7 +383,7 @@ const path = require('path');
        s && ['menu','play','pause','defeat','victory'].includes(s.etat));
 
     ok('état final cohérent après spam',
-       s && s.billes>=0 && s.billes<=3 &&
+       s && s.billes>=0 && s.billes<=5 &&
        finite(s.score) && finite(s.mult));
 
     /* =========================================================
@@ -394,7 +398,7 @@ const path = require('path');
 
       if(q.score!==0 ||
          q.mult!==1 ||
-         q.billes!==3 ||
+         q.billes!==5 ||
          !Array.isArray(q.runes) ||
          !q.runes.every(Boolean)){
         resetBad++;

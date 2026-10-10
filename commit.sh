@@ -12,8 +12,8 @@ cd ~/mes-jeux
 
 # Fichiers à ajouter automatiquement (uniquement s'ils existent)
 FILES=(
-  "cristal-dragon-v5-opencode.html"
-  "qa-opencode.sh"
+  "cristal-dragon.html"
+  "qa.sh"
   "AGENTS.md"
   ".gitignore"
   "TEST_REPORT.md"
@@ -28,7 +28,7 @@ for f in "${FILES[@]}"; do
 done
 
 # Ajouter tous les tests (sauf backups, gérés par .gitignore)
-git add tests-opencode/*.js 2>/dev/null
+git add tests/*.js 2>/dev/null
 git add tests/*.js 2>/dev/null
 
 # Voir ce qui est stagé

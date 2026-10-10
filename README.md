@@ -1,27 +1,27 @@
-# Cristal Dragon V5
+# Cristal Dragon
 
 Jeu de flipper en HTML/CSS/JavaScript vanilla, avec QA automatisée Playwright.
 
 ## État actuel
 
-- **173 tests PASS** (10 fichiers de test)
-- **11 commits** dans Git
+- **247 tests PASS**
+- **1 commit**
 - **Zéro erreur JavaScript / console**
 
 ## Fichiers principaux
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `cristal-dragon-v5-opencode.html` | Le jeu (fichier unique, ~60 Ko) |
-| `qa-opencode.sh` | Lance les 10 tests |
-| `commit.sh` | Commit automatique avec le bon périmètre |
-| `AGENTS.md` | Règles pour OpenCode |
-| `PROMPTS.md` | Prompts réutilisables pour OpenCode |
-| `tests-opencode/` | Les 10 tests Playwright |
+| `cristal-dragon.html` | Le jeu (fichier unique) |
+| `qa.sh` | Lance tous les tests |
+| `qa-rapide.sh` | Lance les tests rapides (sans bots) |
+| `qa-complete.sh` | Lance tous les tests (avec bots) |
+| `commit.sh` | Commit automatique |
+| `tests/` | Tests Playwright |
 
 ## Comment jouer
 
-Ouvre `cristal-dragon-v5-opencode.html` dans un navigateur.
+Ouvre `cristal-dragon.html` dans un navigateur.
 
 | Touche | Action |
 | :--- | :--- |
@@ -35,4 +35,4 @@ Ouvre `cristal-dragon-v5-opencode.html` dans un navigateur.
 ## Comment tester
 
 ```bash
-bash qa-opencode.sh
+bash qa-rapide.sh

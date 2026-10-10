@@ -1,6 +1,6 @@
 const { firefox } = require('playwright');
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 
 (async () => {
   const browser = await firefox.launch({ headless: true });

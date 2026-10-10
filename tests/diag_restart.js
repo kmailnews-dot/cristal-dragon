@@ -4,7 +4,7 @@ const { firefox } = require('@playwright/test');
   const browser = await firefox.launch({ headless: true });
   const page = await browser.newPage();
 
-  await page.goto('file:///home/zkk/mes-jeux/cristal-dragon-v5.html');
+  await page.goto('file:///home/zkk/mes-jeux/cristal-dragon.html');
   await page.waitForLoadState('domcontentloaded');
 
   const play = page.locator('button:visible').filter({ hasText: 'JOUER' }).first();

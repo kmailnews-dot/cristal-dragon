@@ -1,7 +1,7 @@
 const { firefox } = require('playwright');
 const fs = require('fs');
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 
 (async () => {
   const browser = await firefox.launch({ headless: true });
@@ -94,10 +94,10 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
       fail('2. état initial = menu', JSON.stringify(s));
     }
 
-    if (s && s.billes === 3) {
-      pass('3. 3 billes initiales');
+    if (s && s.billes === 5) {
+      pass('3. 5 billes initiales');
     } else {
-      fail('3. 3 billes initiales', `billes=${s?.billes}`);
+      fail('3. 5 billes initiales', `billes=${s?.billes}`);
     }
 
     // ==================================================
@@ -312,7 +312,7 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
           s.etat === 'play' &&
           s.score === 0 &&
           s.mult === 1 &&
-          s.billes === 3
+          s.billes === 5
         ) {
           pass('16. Recommencer remet une partie propre');
         } else {
@@ -430,11 +430,11 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
         await sleep(50);
       }
 
-      if (before && before.billes === 3) {
-        pass('19. avant drain : 3 billes');
+      if (before && before.billes === 5) {
+        pass('19. avant drain : 5 billes');
       } else {
         fail(
-          '19. avant drain : 3 billes',
+          '19. avant drain : 5 billes',
           `billes=${before ? before.billes : 'inconnu'}`
         );
       }
@@ -455,11 +455,11 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
 
       let d1 = await getState();
 
-      if (d1.billes === 2) {
-        pass('21. premier drain : 3 → 2 billes');
+      if (d1.billes === 4) {
+        pass('21. premier drain : 5 → 4 billes');
       } else {
         fail(
-          '21. premier drain : 3 → 2 billes',
+          '21. premier drain : 5 → 4 billes',
           `billes=${d1.billes}`
         );
       }
@@ -492,11 +492,11 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
 
       let d2 = await getState();
 
-      if (d2.billes === 1) {
-        pass('23. deuxième drain : 2 → 1 bille');
+      if (d2.billes === 3) {
+        pass('23. deuxième drain : 4 → 5 billes');
       } else {
         fail(
-          '23. deuxième drain : 2 → 1 bille',
+          '23. deuxième drain : 4 → 5 billes',
           `billes=${d2.billes}`
         );
       }
@@ -529,7 +529,7 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
 
       let d3 = await getState();
 
-      if (d3.billes === 0 || d3.etat === 'defeat') {
+      if (d3.billes === 2 || d3.etat === 'defeat') {
         pass(
           '24. troisième drain déclenche la fin de partie',
           `etat=${d3.etat}, billes=${d3.billes}`
@@ -542,9 +542,9 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
       }
     } else {
       fail('18. onDrain disponible');
-      fail('19. avant drain : 3 billes');
-      fail('21. premier drain : 3 → 2 billes');
-      fail('22. deuxième drain : 2 → 1 bille');
+      fail('19. avant drain : 5 billes');
+      fail('21. premier drain : 5 → 4 billes');
+      fail('22. deuxième drain : 4 → 5 billes');
       fail('24. troisième drain déclenche la fin de partie');
     }
 
