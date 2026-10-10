@@ -1,7 +1,7 @@
 const { firefox } = require('playwright');
 const fs = require('fs');
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 const REPORT = '/home/zkk/mes-jeux/TEST_REPORT.md';
 
 (async () => {

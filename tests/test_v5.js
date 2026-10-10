@@ -1,7 +1,7 @@
 const { firefox } = require('playwright');
 const fs = require('fs');
 
-const GAME = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
+const GAME = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 const REPORT = '/home/zkk/mes-jeux/TEST_REPORT_V5.md';
 
 let browser;
@@ -64,7 +64,7 @@ async function startGame() {
   const s = state();
 
   test('4. passage en mode play', s && s.state === 'play');
-  test('5. 3 boules au départ', s && s.balls === 3, `balls=${s && s.balls}`);
+  test('5. 3 boules au départ', s && s.balls === 5, `balls=${s && s.balls}`);
   test('6. score initial 0', s && s.score === 0, `score=${s && s.score}`);
   test('7. multiplicateur initial x1', s && s.mult === 1, `mult=${s && s.mult}`);
 
@@ -372,7 +372,7 @@ async function main() {
   const balls1 = state().balls;
 
   test(
-    '31. premier drain : 3 -> 2',
+    '31. premier drain : 5 -> 4',
     d1 && balls1 === 2,
     `balls=${balls1}`
   );
@@ -794,7 +794,7 @@ async function main() {
 
 Date : ${new Date().toLocaleString('fr-FR')}
 
-Fichier testé : \`cristal-dragon-v5.html\`
+Fichier testé : \`cristal-dragon.html\`
 
 Navigateur : Firefox / Playwright
 

@@ -1,7 +1,7 @@
 const { firefox } = require('playwright');
 const fs = require('fs');
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 
 (async () => {
 
@@ -418,7 +418,7 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
       s.etat === 'play' &&
       s.score === 0 &&
       s.mult === 1 &&
-      s.billes === 3
+      s.billes === 5
     ) {
       pass('20. touche R redémarre une partie propre');
     } else {
@@ -444,7 +444,7 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5.html';
       if (
         rs.etat !== 'play' ||
         rs.score !== 0 ||
-        rs.billes !== 3 ||
+        rs.billes !== 5 ||
         rs.mult !== 1
       ) {
         restartOk = false;

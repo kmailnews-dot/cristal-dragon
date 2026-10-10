@@ -8,7 +8,7 @@ const { firefox } = require("playwright");
   const fail=(n,s)=>{F++;console.log(`FAIL ${n} ${s}`)};
 
   try {
-    await page.goto(`file://${process.cwd()}/cristal-dragon-v5.html`);
+    await page.goto(`file://${process.cwd()}/cristal-dragon.html`);
     await page.waitForTimeout(300); await page.evaluate(()=>{ startGame(); }); await page.waitForTimeout(300);
     await page.evaluate(()=>spawnBall()); await page.waitForTimeout(50);
 

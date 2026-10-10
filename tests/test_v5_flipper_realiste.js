@@ -4,7 +4,7 @@
  */
 const { firefox } = require("playwright");
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5-opencode.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 const NB_PARTIES = 20; // Modifie ici pour 100
 
 (async () => {

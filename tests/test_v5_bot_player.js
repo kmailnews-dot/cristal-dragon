@@ -1,11 +1,11 @@
 /* BOT JOUEUR AUTOMATIQUE — Cristal Dragon V5
  * Simule une partie complète comme un joueur humain via Playwright (firefox).
- * Fichier autorisé : UNIQUEMENT ce fichier dans tests-opencode/.
+ * Fichier autorisé : UNIQUEMENT ce fichier dans tests/.
  * Ne modifie JAMAIS le jeu. Lecture seule via evaluate + vrais inputs clavier/souris.
  */
 const { firefox } = require('playwright');
 
-const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon-v5-opencode.html';
+const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 
 (async () => {
   const browser = await firefox.launch({ headless: true });
