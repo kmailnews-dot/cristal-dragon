@@ -70,8 +70,9 @@ body{
   background:linear-gradient(165deg, rgba(34,24,64,.94), rgba(15,10,32,.96));
   border:1px solid rgba(255,209,102,.28); border-radius:calc(var(--u)*20px);
   box-shadow:0 calc(var(--u)*20px) calc(var(--u)*54px) rgba(0,0,0,.65); }
-.panel.active{ display:flex; animation:pop .4s cubic-bezier(.2,1.4,.4,1); }
+.panel.active{ display:flex; animation:panelIn .4s cubic-bezier(.2,1.4,.4,1); }
 @keyframes pop{ from{ transform:scale(.9); opacity:0; } }
+@keyframes panelIn{ from{ opacity:0; transform:scale(.9) translateY(8px); } to{ opacity:1; transform:scale(1) translateY(0); } }
 .gem{ width:calc(var(--u)*26px); height:calc(var(--u)*26px); transform:rotate(45deg);
   border-radius:calc(var(--u)*6px); background:linear-gradient(135deg,#c4f4ff,#7a5cff);
   box-shadow:0 0 calc(var(--u)*18px) rgba(130,110,255,.8); animation:float 3s ease-in-out infinite;
