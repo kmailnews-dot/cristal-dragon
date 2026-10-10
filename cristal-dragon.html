@@ -532,6 +532,11 @@ const MODES={
 };
 let gameMode='classic', goal=GOAL, chronoT=0, chronoShown=-1;
 let bonus=false, bonusT=0;
+/* ---------- Power-ups : bonus ramassables (desactives en entraînement).
+   Contraintes : 1 seul power-up sur le plateau max, nouveau multiplicateur
+   powerupMult (cumulable, n'altère ni mult, ni comboMult, ni cacheMult). */
+let powerup=null, powerupT=15, magnetT=0, x10T=0, shieldActive=false, powerupMult=1;
+const POWERUP={SPAWN:15, LIFE:8, DUR:5, R:14, COLLECT:30};
 let top5=loadTop5(), topSaved=false;
 let stats=loadStats();
 let gameComboMax=1;
@@ -1527,7 +1532,7 @@ function collideAll(){
 
 /* ---------- Logique de jeu ---------- */
 function addScore(base,x,y,big){
-  const v=base*mult*cacheMult;
+  const v=base*mult*cacheMult*powerupMult;
   score+=v; scoreDirty=true;
   if(x!==undefined) floater('+'+v,x,y,big);
   if(score>=goal && state==='play'){
@@ -1594,7 +1599,60 @@ function hitRune(i){
   }
   checkAchievements();
 }
+/* ---------- Power-ups : spawn / activation (effets de jeu, pas de physique) ---------- */
+function spawnPowerup(){
+  if(powerup || trainingMode) return;
+  const types=['magnet','x10','shield'];
+  const type=types[(Math.random()*types.length)|0];
+  // Position aleatoire sur le plateau, hors murs / lane / runes / oeil / bumpers
+  let x=200, y=350;
+  for(let t=0;t<24;t++){
+    const cx=70+Math.random()*240, cy=140+Math.random()*380;
+    let ok=true;
+    const avoid=[{x:158,y:218},{x:252,y:218},{x:205,y:296}];
+    for(const b of avoid){ if(Math.hypot(cx-b.x,cy-b.y)<52){ ok=false; break; } }
+    if(ok && Math.hypot(cx-eye.x,cy-eye.y)<70) ok=false;
+    if(ok && Math.hypot(cx-(OBSTACLE.cx),cy-(OBSTACLE.cy))<OBSTACLE.dist+40) ok=false;
+    if(ok){ x=cx; y=cy; break; }
+    x=cx; y=cy;
+  }
+  powerup={x:x, y:y, type:type, ttl:POWERUP.LIFE};
+  ring(x,y,'w');
+}
+function activatePowerup(type){
+  if(trainingMode) return;
+  if(type==='magnet'){
+    magnetT=POWERUP.DUR;
+    floater('AIMANT !',200,350,true);
+    burst(ball?ball.x:200,ball?ball.y:350,'m',16,280);
+    sndBonus();
+  }else if(type==='x10'){
+    x10T=POWERUP.DUR; powerupMult=10;
+    floater('x10 !',200,350,true);
+    burst(ball?ball.x:200,ball?ball.y:350,'g',16,280);
+    goldFlash=goldFlashM;
+    sndCache();
+  }else if(type==='shield'){
+    shieldActive=true;
+    floater('BOUCLIER !',200,350,true);
+    burst(ball?ball.x:200,ball?ball.y:350,'c',16,280);
+    ring(200,350,'c');
+    sndBonus();
+  }
+}
 function onDrain(){
+  // Power-up SHIELD : protege du prochain drain (1 seule fois, combo conserve)
+  if(shieldActive){
+    shieldActive=false;
+    sndBonus(); buzz(60);
+    burst(clamp(ball.x,140,260),672,'c',14,240); shake(5,0.25);
+    ring(clamp(ball.x,140,260),660,'c');
+    floater('BOUCLIER !',200,560,true);
+    ball=null;
+    setHint(-1);
+    respawnT=0.9;
+    return;
+  }
   comboMult=1; comboT=0; perfectShown=false;
   sndDrain(); buzz(60);
   redFlash=0.7;
@@ -1654,6 +1712,7 @@ function resetGame(){
   redFlash=0; shakeT=0; fwT=0; endTime=0; goldFlash=0;
   victoryT=0; victoryFwT=0; clearVictoryCrystals();
   bonus=false; bonusT=0;
+  powerup=null; powerupT=POWERUP.SPAWN; magnetT=0; x10T=0; shieldActive=false; powerupMult=1;
   topSaved=false;
   wake.t=REDUCED?0:C.WAKE_DUR; wake.step=0;
   emberT=0.3;
@@ -1955,6 +2014,37 @@ function update(dt){
     if(comboT>0){ comboT-=dt; if(comboT<=0){ comboT=0; comboMult=1; perfectShown=false; } }
     if(cacheT>0){ cacheT-=dt; if(cacheT<=0){ cacheT=0; cacheMult=1; } }
     if(bonus){ bonusT-=dt; if(bonusT<=0){ bonusT=0; bonus=false; } }
+    // Power-ups : spawn toutes les 15s, vie 8s, desactives en entraînement
+    if(trainingMode){ powerup=null; magnetT=0; x10T=0; shieldActive=false; powerupMult=1; }
+    else{
+      powerupT-=dt;
+      if(powerupT<=0){ powerupT=POWERUP.SPAWN; if(!powerup) spawnPowerup(); }
+      if(powerup){ powerup.ttl-=dt; if(powerup.ttl<=0) powerup=null; }
+      if(magnetT>0){ magnetT-=dt; if(magnetT<=0) magnetT=0; }
+      if(x10T>0){ x10T-=dt; if(x10T<=0){ x10T=0; powerupMult=1; } }
+      // Aimant : effet de jeu (attire la bille vers le bumper le plus proche)
+      if(magnetT>0 && ball && ball.state==='live'){
+        let bi=0, bd=1e12;
+        for(let i=0;i<bumpers.length;i++){
+          const d=Math.hypot(bumpers[i].x-ball.x,bumpers[i].y-ball.y);
+          if(d<bd){ bd=d; bi=i; }
+        }
+        if(bd>1){
+          const k=380*dt/bd;
+          ball.vx+=(bumpers[bi].x-ball.x)*k;
+          ball.vy+=(bumpers[bi].y-ball.y)*k;
+        }
+      }
+      // Ramassage : distance bille-powerup
+      if(powerup && ball && ball.state==='live'){
+        const dx=ball.x-powerup.x, dy=ball.y-powerup.y;
+        if(dx*dx+dy*dy < (POWERUP.COLLECT+BALL_R)*(POWERUP.COLLECT+BALL_R)){
+          const t=powerup.type;
+          powerup=null; powerupT=POWERUP.SPAWN;
+          activatePowerup(t);
+        }
+      }
+    }
     if(gameMode==='chrono'&&chronoT>0){
       chronoT-=dt;
       const cs=Math.max(0,Math.ceil(chronoT));
@@ -2048,6 +2138,8 @@ function render(alpha){
   drawMult();
   drawCombo();
   drawCache();
+  drawPowerup();
+  drawPowerupStatus();
   if(redFlash>0){
     const g=ctx.createLinearGradient(0,H-140,0,H);
     g.addColorStop(0,'rgba(255,40,60,0)');
@@ -2464,6 +2556,57 @@ function drawCache(){
   ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=4;
   ctx.strokeText('CACHE x3',x,y);
   ctx.fillText('CACHE x3',x,y);
+}
+/* ---------- Power-ups : dessin du bonus + effets actifs ---------- */
+const POWERUP_STYLE={
+  magnet:{icon:'🧲', halo:'255,95,208'},
+  x10:{icon:'✖️', halo:'255,209,102'},
+  shield:{icon:'🛡️', halo:'79,216,255'}
+};
+function drawPowerup(){
+  if(!powerup) return;
+  const st=POWERUP_STYLE[powerup.type]||POWERUP_STYLE.x10;
+  if(powerup.ttl<2 && ((time*6)|0)%2===0) return; // clignote avant disparition
+  const pulse=1+0.08*Math.sin(time*4);
+  const R=POWERUP.R*2.4*pulse;
+  const g=ctx.createRadialGradient(powerup.x,powerup.y,4,powerup.x,powerup.y,R);
+  g.addColorStop(0,'rgba('+st.halo+',0.55)');
+  g.addColorStop(1,'rgba('+st.halo+',0)');
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.arc(powerup.x,powerup.y,R,0,TAU); ctx.fill();
+  ctx.fillStyle='rgba(10,7,22,.85)';
+  ctx.beginPath(); ctx.arc(powerup.x,powerup.y,POWERUP.R+4,0,TAU); ctx.fill();
+  ctx.strokeStyle='rgba('+st.halo+',.9)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(powerup.x,powerup.y,POWERUP.R+4,0,TAU); ctx.stroke();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='18px system-ui, sans-serif';
+  ctx.fillText(st.icon,powerup.x,powerup.y+1);
+  ctx.textBaseline='alphabetic';
+}
+function drawPowerupStatus(){
+  let y=172;
+  ctx.textAlign='center';
+  ctx.font=F_SMALL;
+  if(magnetT>0){
+    ctx.fillStyle='#ff5fd0';
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=3;
+    ctx.strokeText('🧲 '+magnetT.toFixed(1)+'s',200,y);
+    ctx.fillText('🧲 '+magnetT.toFixed(1)+'s',200,y);
+    y+=20;
+  }
+  if(x10T>0){
+    ctx.fillStyle='#ffd166';
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=3;
+    ctx.strokeText('✖️ x10 '+x10T.toFixed(1)+'s',200,y);
+    ctx.fillText('✖️ x10 '+x10T.toFixed(1)+'s',200,y);
+    y+=20;
+  }
+  if(shieldActive){
+    ctx.fillStyle='#4fd8ff';
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=3;
+    ctx.strokeText('🛡️ BOUCLIER',200,y);
+    ctx.fillText('🛡️ BOUCLIER',200,y);
+  }
 }
 function updateHUD(){
   if(scoreDirty){
