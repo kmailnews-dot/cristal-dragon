@@ -1043,6 +1043,24 @@ const eye={x:200,y:108,r:18,flash:0,cd:0,blinkT:3,blinkP:0,hp:5,maxHp:5,hitFlash
 const EYE_BASE_X=200;
 const EYE_AMPLITUDE=60;
 const EYE_SPEED=1.57; // 2π/4s
+/* ---------- Boss alternatifs selon le mode (gold/fire/ice) ----------
+   gold = comportement historique inchangé (classique).
+   BOSS_TYPES centralise : hp, speedMul, projInt, effect, phase2At. */
+const BOSS_TYPES={
+  gold:{hp:5, speedMul:1,   projInt:2, effect:null,   phase2At:2},
+  fire:{hp:3, speedMul:1.5, projInt:1, effect:null,   phase2At:1},
+  ice:{hp:8,  speedMul:0.7, projInt:3, effect:'slow', phase2At:3}
+};
+const BOSS_SKIN={
+  gold:{orbit:'255,209,102', halo:'255,209,102', proj:'#ff7a3c', fire:'255,122,60'},
+  fire:{orbit:'255,90,40',   halo:'255,90,40',   proj:'#ff3d00', fire:'255,61,0'},
+  ice:{orbit:'79,216,255',   halo:'79,216,255',  proj:'#4fd8ff', fire:'79,216,255'}
+};
+let bossType='gold';
+let slowT=0; // timer visuel de l'effet 'slow' (glace) : la bille a déjà été ralentie (vx*=0.5)
+function bossParams(){ return BOSS_TYPES[bossType]||BOSS_TYPES.gold; }
+function bossSkin(){ return BOSS_SKIN[bossType]||BOSS_SKIN.gold; }
+function isPhase2(){ return eye.hp<=bossParams().phase2At; }
 // Projectiles boss : pénalité combo si collision avec la bille (aucun dégât)
 const PROJ_SPEED=200, PROJ_INTERVAL=2.0, PROJ_RADIUS=6;
 const projectiles=[
@@ -1356,54 +1374,64 @@ function makeEye(flash){
   }
   return c;
 }
-function makeDragon(flash){
+function makeDragon(flash,type){
+  const bt=(type&&BOSS_SKIN[type])?type:'gold';
+  // Palettes par boss : gold = couleurs historiques inchangées
+  const PAL={
+    gold:{wing1:'#ffe29a', wing2:'#c47a1e', edge:'#8a4d12', horn:'#fff3d0',
+          head0:'#ffe9a8', head1:'#ffb347', head2:'#8a4d12', muzzle:'#ffd97a'},
+    fire:{wing1:'#ffd166', wing2:'#ff3d00', edge:'#7a1e00', horn:'#fff3d0',
+          head0:'#ffd166', head1:'#ff7a3c', head2:'#a81e00', muzzle:'#ff9a5e'},
+    ice:{wing1:'#ffffff', wing2:'#2a5fff', edge:'#1a2a7a', horn:'#e8f6ff',
+          head0:'#ffffff', head1:'#4fd8ff', head2:'#1a3a8a', muzzle:'#c9f6ff'}
+  }[bt];
   const c=mk(132,96), g=c.getContext('2d'), cx=66, cy=48;
   // Ailes chauve-souris 4 pointes (derriere la tete)
   const wgL=g.createLinearGradient(cx-15,cy-5,cx-42,cy+8);
-  wgL.addColorStop(0,'#ffe29a'); wgL.addColorStop(1,'#c47a1e');
+  wgL.addColorStop(0,PAL.wing1); wgL.addColorStop(1,PAL.wing2);
   const wgR=g.createLinearGradient(cx+15,cy-5,cx+42,cy+8);
-  wgR.addColorStop(0,'#ffe29a'); wgR.addColorStop(1,'#c47a1e');
+  wgR.addColorStop(0,PAL.wing1); wgR.addColorStop(1,PAL.wing2);
   // Aile gauche : membrane 4 pointes
-  g.fillStyle=wgL; g.strokeStyle='#8a4d12'; g.lineWidth=2;
+  g.fillStyle=wgL; g.strokeStyle=PAL.edge; g.lineWidth=2;
   g.beginPath();
   g.moveTo(cx-15,cy-5); g.lineTo(cx-30,cy-15); g.lineTo(cx-42,cy-5);
   g.lineTo(cx-35,cy+5); g.lineTo(cx-30,cy+8); g.lineTo(cx-15,cy+5);
   g.closePath(); g.fill(); g.stroke();
   // Veines aile gauche
-  g.strokeStyle='#8a4d12'; g.lineWidth=1;
+  g.strokeStyle=PAL.edge; g.lineWidth=1;
   for(const [vx,vy] of [[cx-30,cy-15],[cx-42,cy-5],[cx-35,cy+5],[cx-30,cy+8]]){
     g.beginPath(); g.moveTo(cx-15,cy); g.lineTo(vx,vy); g.stroke();
   }
   // Aile droite : symetrique
-  g.fillStyle=wgR; g.strokeStyle='#8a4d12'; g.lineWidth=2;
+  g.fillStyle=wgR; g.strokeStyle=PAL.edge; g.lineWidth=2;
   g.beginPath();
   g.moveTo(cx+15,cy-5); g.lineTo(cx+30,cy-15); g.lineTo(cx+42,cy-5);
   g.lineTo(cx+35,cy+5); g.lineTo(cx+30,cy+8); g.lineTo(cx+15,cy+5);
   g.closePath(); g.fill(); g.stroke();
   // Veines aile droite
-  g.strokeStyle='#8a4d12'; g.lineWidth=1;
+  g.strokeStyle=PAL.edge; g.lineWidth=1;
   for(const [vx,vy] of [[cx+30,cy-15],[cx+42,cy-5],[cx+35,cy+5],[cx+30,cy+8]]){
     g.beginPath(); g.moveTo(cx+15,cy); g.lineTo(vx,vy); g.stroke();
   }
   // Cornes : 2 petites cornes en haut
-  g.fillStyle='#fff3d0'; g.strokeStyle='#8a4d12'; g.lineWidth=2;
+  g.fillStyle=PAL.horn; g.strokeStyle=PAL.edge; g.lineWidth=2;
   g.beginPath(); g.moveTo(cx-14,cy-18); g.lineTo(cx-20,cy-34); g.lineTo(cx-8,cy-22); g.closePath(); g.fill(); g.stroke();
   g.beginPath(); g.moveTo(cx+14,cy-18); g.lineTo(cx+20,cy-34); g.lineTo(cx+8,cy-22); g.closePath(); g.fill(); g.stroke();
-  // Tête : dégradé doré/orangé demandé
+  // Tête : dégradé doré/orangé demandé (palette selon bossType)
   const grd=g.createRadialGradient(cx-6,cy-8,4,cx,cy,32);
-  grd.addColorStop(0,flash?'#fff6d8':'#ffe9a8');
-  grd.addColorStop(0.55,flash?'#ffcf5e':'#ffb347');
-  grd.addColorStop(1,flash?'#c47a1e':'#8a4d12');
+  grd.addColorStop(0,flash?'#fff6d8':PAL.head0);
+  grd.addColorStop(0.55,flash?'#ffcf5e':PAL.head1);
+  grd.addColorStop(1,flash?'#c47a1e':PAL.head2);
   g.fillStyle=grd;
   g.beginPath(); g.ellipse(cx,cy,26,22,0,0,TAU); g.fill();
   g.strokeStyle='#5e3208'; g.lineWidth=2; g.stroke();
   // Écailles frontales renforcees : rangee visible + relief
-  g.strokeStyle='#8a4d12'; g.lineWidth=1.8;
+  g.strokeStyle=PAL.edge; g.lineWidth=1.8;
   for(const [ex,ey,er] of [[cx-10,cy-14,3.5],[cx-3,cy-17,3.5],[cx+4,cy-17,3.5],[cx+11,cy-14,3.5],[cx-6,cy-11,3],[cx+7,cy-11,3]]){
     g.beginPath(); g.arc(ex,ey,er,TAU/2,TAU); g.stroke();
   }
   // Museau
-  g.fillStyle=flash?'#ffe9a8':'#ffd97a';
+  g.fillStyle=flash?'#ffe9a8':PAL.muzzle;
   g.beginPath(); g.ellipse(cx,cy+10,13,9,0,0,TAU); g.fill();
   g.strokeStyle='rgba(94,50,8,.6)'; g.lineWidth=1.5; g.stroke();
   // Machoire marquee : contour bas du museau
@@ -1493,7 +1521,7 @@ function makeSprites(){
   for(const k of ['c','m','v','e']){ SPR.bump[k]=makeBumper(k,false); SPR.bumpF[k]=makeBumper(k,true); }
   SPR.runeLit=[];
   for(let i=0;i<3;i++) SPR.runeLit[i]=makeRune(i,true);
-  SPR.eye=makeDragon(false); SPR.eyeF=makeDragon(true);
+  SPR.eye=makeDragon(false,bossType); SPR.eyeF=makeDragon(true,bossType);
   SPR.dot={};
   for(const k of ['c','m','v','g','w','e']) SPR.dot[k]=makeDot(COL[k]);
   SPR.flip=makeFlipper();
@@ -1932,7 +1960,12 @@ function resetGame(){
   for(const b of bumpers){ b.flash=0; b.cd=0; }
   mobileObstacle.angle=0; mobileObstacle.flash=0; mobileObstacle.cd=0; mobileObstacle.x=OBSTACLE.cx+OBSTACLE.dist; mobileObstacle.y=OBSTACLE.cy;
   for(const s of slings){ s.flash=0; s.cd=0; }
-  eye.flash=0; eye.cd=0; eye.hp=5; eye.maxHp=5; eye.hitFlash=0; eye.deadT=0;
+  // Boss alternatif selon le mode : classic->gold, chrono->fire, survie->ice
+  bossType=gameMode==='chrono'?'fire':(gameMode==='survie'?'ice':'gold');
+  const _bp=bossParams();
+  eye.flash=0; eye.cd=0; eye.hp=_bp.hp; eye.maxHp=_bp.hp; eye.hitFlash=0; eye.deadT=0;
+  slowT=0;
+  if(SPR&&SPR.eye){ SPR.eye=makeDragon(false,bossType); SPR.eyeF=makeDragon(true,bossType); }
   projT=0; for(const pr of projectiles) pr.actif=false;
   eyeFireT=0; for(const f of eyeFire) f.life=0;
   for(const p of parts) p.life=0;
@@ -2208,6 +2241,7 @@ function update(dt){
   if(eye.flash>0) eye.flash=Math.max(0,eye.flash-dt*4);
   if(eye.cd>0) eye.cd-=dt;
   if(eye.hitFlash>0) eye.hitFlash=Math.max(0,eye.hitFlash-dt*4);
+  if(slowT>0) slowT=Math.max(0,slowT-dt);
   if(eye.deadT>0){ eye.deadT-=dt; if(eye.deadT<=0){ eye.deadT=0; eye.hp=eye.maxHp; } }
   if(eye.blinkP>0){ eye.blinkP-=dt; if(eye.blinkP<0) eye.blinkP=0; }
   else{ eye.blinkT-=dt; if(eye.blinkT<=0){ eye.blinkT=2.6+Math.random()*2.6; eye.blinkP=0.26; } }
@@ -2293,14 +2327,16 @@ function update(dt){
     mobileObstacle.x=OBSTACLE.cx+Math.cos(mobileObstacle.angle)*OBSTACLE.dist;
     mobileObstacle.y=OBSTACLE.cy+Math.sin(mobileObstacle.angle)*OBSTACLE.dist;
     // Boss : sinusoïde horizontale, figé si vaincu (deadT>0), eye.y inchangé
-    // Phase 2 (hp<=2) : oscillation x1.5 plus rapide
+    // Phase 2 (hp<=phase2At) : oscillation x1.5 plus rapide ; speedMul selon bossType
     if(eye.deadT<=0){
-      const speed=eye.hp<=2?EYE_SPEED*1.5:EYE_SPEED;
+      const _bp2=bossParams(), _p2=eye.hp<=_bp2.phase2At;
+      const speed=(_p2?EYE_SPEED*1.5:EYE_SPEED)*_bp2.speedMul;
       eye.x=EYE_BASE_X+Math.sin(time*speed)*EYE_AMPLITUDE;
     }
-    // Projectiles visuels : timer 2s (1s en phase 2), figés si boss vaincu
+    // Projectiles : intervalle selon bossType (phase 2 = moitié), figés si boss vaincu
     if(eye.deadT<=0){
-      const interval=eye.hp<=2?1.0:PROJ_INTERVAL;
+      const _bp3=bossParams();
+      const interval=(eye.hp<=_bp3.phase2At)?_bp3.projInt/2:_bp3.projInt;
       projT+=dt;
       if(projT>=interval){ projT=0; spawnProjectile(); }
     }
@@ -2308,12 +2344,16 @@ function update(dt){
       if(!pr.actif) continue;
       pr.y+=PROJ_SPEED*dt;
       if(pr.y>700) pr.actif=false;
-      // Collision bille-projectile : pénalité combo, bille intacte (ni vie ni vitesse touchées)
+      // Collision bille-projectile : pénalité combo (bille intacte sauf boss glace : slow 2s)
       if(ball && pr.actif){
         const dx=pr.x-ball.x, dy=pr.y-ball.y, rr=(ball.r||BALL_R)+PROJ_RADIUS;
         if(dx*dx+dy*dy<rr*rr){
           pr.actif=false;
           comboMult=1; comboT=0; perfectShown=false;
+          if(bossParams().effect==='slow' && ball.state==='live'){
+            ball.vx*=0.5; ball.vy*=0.5; slowT=2;
+            floater('RALENTI !',ball.x,ball.y-30,false);
+          }
           burst(pr.x,pr.y,'e',10,220); shake(3,0.15);
           redFlash=Math.max(redFlash,0.35);
           sndWall(-500); buzz(30);
@@ -2479,8 +2519,9 @@ function drawEye(){
   if(eye.blinkP>0){ o=1-Math.sin(Math.PI*(1-eye.blinkP/0.26)); o=Math.max(0.06,o); }
   ctx.fillStyle='#1a1230';
   ctx.beginPath(); ctx.ellipse(eye.x,eye.y,62,26,0,0,TAU); ctx.fill();
-  // Particules dorées en orbite (derrière le sprite) ; masquées si boss vaincu
+  // Particules en orbite (couleur selon bossType) ; masquées si boss vaincu
   if(eye.deadT<=0){
+    const _oc=bossSkin().orbit;
     const ot=REDUCED?0:time;
     for(let i=0;i<NB_ORBIT_PARTICLES;i++){
       const a=ot*ORBIT_SPEEDS[i]+ORBIT_PHASES[i];
@@ -2489,15 +2530,15 @@ function drawEye(){
       const al=0.5+0.2*Math.sin(ot*2+ORBIT_PHASES[i]);
       const sz=3+Math.sin(ot*3+ORBIT_PHASES[i]);
       const og=ctx.createRadialGradient(px,py,0,px,py,sz*3);
-      og.addColorStop(0,'rgba(255,209,102,'+al.toFixed(3)+')'); og.addColorStop(1,'rgba(255,209,102,0)');
+      og.addColorStop(0,'rgba('+_oc+','+al.toFixed(3)+')'); og.addColorStop(1,'rgba('+_oc+',0)');
       ctx.fillStyle=og;
       ctx.beginPath(); ctx.arc(px,py,sz*3,0,TAU); ctx.fill();
-      ctx.fillStyle='rgba(255,230,160,'+al.toFixed(3)+')';
+      ctx.fillStyle='rgba('+_oc+','+al.toFixed(3)+')';
       ctx.beginPath(); ctx.arc(px,py,sz,0,TAU); ctx.fill();
     }
   }
   // Ailes battantes (derrière le sprite) : 0=repliées, 1=ouvertes ; figées si boss vaincu
-  const wingSpeed = eye.hp<=2 ? 8 : 4; // 2x plus vite en phase 2
+  const wingSpeed = isPhase2() ? 8 : 4; // 2x plus vite en phase 2
   const wingOpen=eye.deadT>0?0:(REDUCED?0.5:Math.sin(time*wingSpeed)*0.5+0.5);
   ctx.save();
   ctx.globalAlpha*=0.85;
@@ -2512,13 +2553,12 @@ function drawEye(){
   if(eye.deadT>0) breath=1;
   const bh2=83*o*breath;
   ctx.drawImage(spr,eye.x-58.5,eye.y-bh2/2,117,bh2);
-  // Halo doré permanent (discret, pulse via time) ; le halo flash prend le dessus si eye.flash>0
-  // Phase 2 (hp<=2) : halo rouge agressif, même animation
+  // Halo permanent (couleur du boss, rouge agressif en phase 2) ; le halo flash prend le dessus si eye.flash>0
   if(eye.flash<=0){
     const hpulse=0.5+0.5*Math.sin(time*1.5);
     const ha=eye.deadT>0?0.03:(0.05+0.10*hpulse);
     const hr=117*(1+0.1*hpulse);
-    const hc=eye.hp<=2?'255,80,60':'255,209,102';
+    const hc=isPhase2()?'255,80,60':bossSkin().halo;
     const hg=ctx.createRadialGradient(eye.x,eye.y,4,eye.x,eye.y,hr);
     hg.addColorStop(0,'rgba('+hc+','+ha.toFixed(3)+')'); hg.addColorStop(1,'rgba('+hc+',0)');
     ctx.fillStyle=hg;
@@ -2549,23 +2589,27 @@ function drawEye(){
   }
 }
 function drawProjectiles(){
+  const _pc=(typeof bossSkin==='function')?bossSkin().proj:'#ff7a3c';
+  const _n=parseInt(_pc.slice(1),16);
+  const _cr=((_n>>16)&255)+','+((_n>>8)&255)+','+(_n&255);
   for(const pr of projectiles){
     if(!pr.actif) continue;
     const g=ctx.createRadialGradient(pr.x,pr.y,0,pr.x,pr.y,PROJ_RADIUS*3);
-    g.addColorStop(0,'rgba(255,90,60,0.55)');
-    g.addColorStop(1,'rgba(255,90,60,0)');
+    g.addColorStop(0,'rgba('+_cr+',0.55)');
+    g.addColorStop(1,'rgba('+_cr+',0)');
     ctx.fillStyle=g;
     ctx.beginPath(); ctx.arc(pr.x,pr.y,PROJ_RADIUS*3,0,TAU); ctx.fill();
-    ctx.fillStyle=COL.e;
+    ctx.fillStyle=_pc;
     ctx.beginPath(); ctx.arc(pr.x,pr.y,PROJ_RADIUS,0,TAU); ctx.fill();
   }
 }
-// Souffle de feu du dragon — purement visuel, aucune physique, aucun état.
+// Souffle du dragon — purement visuel, aucune physique, aucun état (couleur selon bossType).
 function drawEyeFire(){
+  const _fc=(typeof bossSkin==='function')?bossSkin().fire:'255,122,60';
   for(const f of eyeFire){
     if(f.life<=0) continue;
     const a=Math.max(0,f.life/f.maxLife);
-    ctx.fillStyle='rgba(255,122,60,'+(a*0.85).toFixed(3)+')';
+    ctx.fillStyle='rgba('+_fc+','+(a*0.85).toFixed(3)+')';
     ctx.beginPath(); ctx.arc(f.x,f.y,f.sz,0,TAU); ctx.fill();
   }
 }
@@ -2872,6 +2916,13 @@ function drawPowerupStatus(){
     ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=3;
     ctx.strokeText('🛡️ BOUCLIER',200,y);
     ctx.fillText('🛡️ BOUCLIER',200,y);
+    y+=20;
+  }
+  if(typeof slowT!=='undefined' && slowT>0){
+    ctx.fillStyle='#4fd8ff';
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=3;
+    ctx.strokeText('❄️ RALENTI '+slowT.toFixed(1)+'s',200,y);
+    ctx.fillText('❄️ RALENTI '+slowT.toFixed(1)+'s',200,y);
   }
 }
 function updateHUD(){
