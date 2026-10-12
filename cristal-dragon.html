@@ -143,6 +143,13 @@ section[data-p="victory"].active{ background:linear-gradient(165deg, rgba(34,24,
 /* ---------- Tutoriel + A propos : scroll si contenu long + HUD masqué comme au menu ---------- */
 section[data-p="tutorial"], section[data-p="about"]{ max-height:92%; overflow-y:auto; }
 section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(var(--u)*14px); }
+section[data-p="settings"]{ max-height:92%; overflow-y:auto; }
+section[data-p="settings"] .row{ display:flex; align-items:center; justify-content:space-between; gap:calc(var(--u)*8px); padding:calc(var(--u)*8px) 0; border-bottom:1px solid rgba(255,255,255,.08); }
+section[data-p="settings"] .row:last-child{ border-bottom:none; }
+section[data-p="settings"] .lbl{ font-size:calc(var(--u)*13px); color:#e8ecff; }
+section[data-p="settings"] .val{ font-size:calc(var(--u)*11px); color:#9aa3d8; letter-spacing:.08em; }
+section[data-p="settings"] .btn.small{ padding:calc(var(--u)*6px) calc(var(--u)*10px); font-size:calc(var(--u)*11px); }
+section[data-p="settings"] .btn.capturing{ background:rgba(255,209,102,.25); color:#ffd97a; }
 [data-state="tutorial"] #hud, [data-state="about"] #hud{ display:none; }
 /* ---------- Boutique : solde doré + liste skins ---------- */
 .best.gold{ color:#ffd166; font-weight:800; }
@@ -193,7 +200,7 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
       <div class="best" id="mBest">Record : 0</div>
       <div class="best" id="mGames">Parties jouées : 0</div>
       <div class="best gold" id="mCoins">Pièces : 0</div>
-      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="quests" id="btnQuests">Quêtes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="about">A propos</button></div>
+      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="quests" id="btnQuests">Quêtes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="settings">Paramètres</button><button class="btn ghost" data-action="about">A propos</button></div>
     </section>
     <section class="panel" data-p="shop">
       <h1>BOUTIQUE</h1>
@@ -261,6 +268,52 @@ section[data-p="tutorial"] .rule, section[data-p="about"] .rule{ font-size:calc(
       <p class="tips">Merci d'avoir joué !</p>
       <p class="tips">Si tu aimes le jeu, tu peux soutenir son développement :<br><a href="https://example.com/soutenir" target="_blank" rel="noopener">https://example.com/soutenir</a></p>
       <div class="btnrow"><button class="btn ghost" data-action="menu">Retour</button></div>
+    </section>
+
+    <section class="panel" data-p="settings">
+      <div class="gem"></div>
+      <h1>Paramètres</h1>
+      <div class="sub">Commandes</div>
+      <div class="row">
+        <span class="lbl">Flipper gauche</span>
+        <span class="val" id="keyLbl-left"></span>
+        <button class="btn small" data-action="capture" data-target="left">Modifier</button>
+      </div>
+      <div class="row">
+        <span class="lbl">Flipper droit</span>
+        <span class="val" id="keyLbl-right"></span>
+        <button class="btn small" data-action="capture" data-target="right">Modifier</button>
+      </div>
+      <div class="row">
+        <span class="lbl">Lancement</span>
+        <span class="val" id="keyLbl-launch"></span>
+        <button class="btn small" data-action="capture" data-target="launch">Modifier</button>
+      </div>
+      <div class="row">
+        <span class="lbl">Nudge haut</span>
+        <span class="val" id="keyLbl-nudgeUp"></span>
+        <button class="btn small" data-action="capture" data-target="nudgeUp">Modifier</button>
+      </div>
+      <div class="row">
+        <span class="lbl">Nudge bas</span>
+        <span class="val" id="keyLbl-nudgeDown"></span>
+        <button class="btn small" data-action="capture" data-target="nudgeDown">Modifier</button>
+      </div>
+      <div class="sub" style="margin-top:calc(var(--u)*14px)">Volume</div>
+      <div class="row">
+        <span class="lbl">Effets sonores</span>
+        <input type="range" id="volSfx" min="0" max="100" step="1" value="100" style="width:calc(var(--u)*120px)">
+        <span class="val" id="volSfxVal">100%</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Musique</span>
+        <input type="range" id="volMusic" min="0" max="100" step="1" value="100" style="width:calc(var(--u)*120px)">
+        <span class="val" id="volMusicVal">100%</span>
+      </div>
+      <div class="btnrow">
+        <button class="btn ghost" data-action="reset-keys">Réinitialiser</button>
+        <button class="btn" data-action="menu">Retour</button>
+      </div>
     </section>
     <section class="panel" data-p="resume">
       <h1>REPRENDRE ?</h1>
@@ -331,6 +384,7 @@ const C={
   LAUNCH:{BASE:1350, RANGE:420, CHARGE:0.9},
   LANE:{X:358, Y:634},
   STUCK:{SPD:25, T:3, NX:150, NY:230},
+  NUDGE:{IX:180, IY:120, WINDOW:1.5, MAX:3},
   POOL_PARTS:200,
   WAKE_DUR:0.95
 };
@@ -738,6 +792,8 @@ function applySave(){
   return true;
 }
 let muted=(()=>{ try{ return localStorage.getItem('cristalDragonMuted')==='1'; }catch(e){ return false; } })();
+let volSfxInit=(()=>{ try{ const v=parseFloat(localStorage.getItem('cristalDragonVolSfx')); return isNaN(v)?1:Math.max(0,Math.min(1,v)); }catch(e){ return 1; } })();
+let volMusicInit=(()=>{ try{ const v=parseFloat(localStorage.getItem('cristalDragonVolMusic')); return isNaN(v)?1:Math.max(0,Math.min(1,v)); }catch(e){ return 1; } })();
 
 /* ---------- État global ---------- */
 const view={k:1};
@@ -769,6 +825,7 @@ let achievements=loadAchievements();
 let gameStartTime=0, gameDrains=0;
 let scoreDirty=true, ballsDirty=true;
 let ball=null, respawnT=0, everLaunched=false, hintT=0, hintMode=-2;
+let nudgeCount=0, nudgeT=0, tilted=false;
 /* ---------- Multi-balles (bonus 3 runes) : billes extra visuelles + points fixes.
    Contraintes : max 2, pas de onDrain, pas de combo/mult, retrait si y>700.
    Physique simplifiée volontairement (murs + bumpers uniquement) car
@@ -989,12 +1046,37 @@ function drawBackground(){
 }
 
 /* Fenêtre debug pour le runtime */
+function doNudge(dir){
+  if(state!=='play') return;
+  if(tilted) return;
+  if(!ball || ball.state!=='live') return;
+  const now=performance.now()/1000;
+  if(nudgeT<=0 || now-nudgeT>C.NUDGE.WINDOW){ nudgeCount=0; nudgeT=now; }
+  nudgeCount++;
+  if(nudgeCount>C.NUDGE.MAX){ tilted=true; setHint(7); return; }
+  if(dir==='up'){
+    ball.vx+=(Math.random()*2-1)*40;
+    ball.vy-=C.NUDGE.IY;
+  } else {
+    ball.vx+=(Math.random()*2-1)*40;
+    ball.vy+=C.NUDGE.IY;
+  }
+  if(ball.vy<-C.MAXV) ball.vy=-C.MAXV;
+  if(ball.vy> C.MAXV) ball.vy= C.MAXV;
+  shake(6,0.12);
+  sndNudge();
+}
+function resetNudge(){
+  nudgeCount=0; nudgeT=0; tilted=false;
+}
+
 window.debugState=()=>JSON.stringify({
   jeu:NOM, version:VERSION, etat:state, mode:gameMode, score, billes:balls, record:best,
   mult, multT:+multT.toFixed(1), comboMult, comboT:+comboT.toFixed(1), muted,
   bille:ball?{x:Math.round(ball.x),y:Math.round(ball.y),vx:Math.round(ball.vx),vy:Math.round(ball.vy),etat:ball.state}:null,
   lanceur:{charge:plunger.charging,power:+plunger.power.toFixed(2)},
-  runes:runes.map(r=>r.up)
+  runes:runes.map(r=>r.up),
+  nudgeCount, tilted
 });
 
 /* ---------- Géométrie de la table ---------- */
@@ -1135,7 +1217,7 @@ function floater(txt,x,y,big){ for(const f of floats){ if(f.t<=0){ f.txt=txt; f.
 
 /* ---------- Audio synthétique (Web Audio) ---------- */
 const Snd={
-  ac:null, master:null, last:Object.create(null), nbuf:null, amb:null,
+  ac:null, master:null, masterSfx:null, masterMusic:null, volSfx:1, volMusic:1, last:Object.create(null), nbuf:null, amb:null,
   ensure(){
     try{
       if(!this.ac){
@@ -1144,12 +1226,20 @@ const Snd={
         this.ac=new AC();
         this.master=this.ac.createGain();
         this.master.gain.value=muted?0:0.5;
+        this.masterSfx=this.ac.createGain();
+        this.masterSfx.gain.value=this.volSfx;
+        this.masterMusic=this.ac.createGain();
+        this.masterMusic.gain.value=this.volMusic;
+        this.masterSfx.connect(this.master);
+        this.masterMusic.connect(this.master);
         this.master.connect(this.ac.destination);
         const len=Math.floor(this.ac.sampleRate*0.6);
         this.nbuf=this.ac.createBuffer(1,len,this.ac.sampleRate);
         const d=this.nbuf.getChannelData(0);
         for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
       }
+      if(this.masterSfx && typeof volSfxInit!=='undefined') this.masterSfx.gain.value=volSfxInit;
+      if(this.masterMusic && typeof volMusicInit!=='undefined') this.masterMusic.gain.value=volMusicInit;
       if(this.ac.state==='suspended') this.ac.resume();
     }catch(e){ this.ac=null; }
   },
@@ -1157,6 +1247,11 @@ const Snd={
     if(!this.master) return;
     try{ this.master.gain.setTargetAtTime(m?0:0.5, this.ac.currentTime, 0.05); }
     catch(e){ this.master.gain.value=m?0:0.5; }
+  },
+  setVol(sfx, music){
+    if(sfx!==undefined){ this.volSfx=Math.max(0,Math.min(1,sfx)); if(this.masterSfx){ try{ this.masterSfx.gain.setTargetAtTime(this.volSfx, this.ac.currentTime, 0.05); }catch(e){ this.masterSfx.gain.value=this.volSfx; } } }
+    if(music!==undefined){ this.volMusic=Math.max(0,Math.min(1,music)); if(this.masterMusic){ try{ this.masterMusic.gain.setTargetAtTime(this.volMusic, this.ac.currentTime, 0.05); }catch(e){ this.masterMusic.gain.value=this.volMusic; } } }
+    try{ localStorage.setItem('cristalDragonVolSfx', String(this.volSfx)); localStorage.setItem('cristalDragonVolMusic', String(this.volMusic)); }catch(e){}
   },
   ok(name,gap){
     if(!this.ac) return false;
@@ -1174,7 +1269,21 @@ const Snd={
       g.gain.setValueAtTime(0.0001,t0);
       g.gain.exponentialRampToValueAtTime(Math.max(0.0002,vol),t0+0.01);
       g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-      o.connect(g); g.connect(this.master);
+      o.connect(g); g.connect(this.masterSfx||this.master);
+      o.start(t0); o.stop(t0+dur+0.05);
+    }catch(e){}
+  },
+  toneM(f,dur,type,vol,f2,delay){
+    if(!this.ac) return;
+    try{
+      const t0=this.ac.currentTime+(delay||0);
+      const o=this.ac.createOscillator(), g=this.ac.createGain();
+      o.type=type; o.frequency.setValueAtTime(Math.max(1,f),t0);
+      if(f2) o.frequency.exponentialRampToValueAtTime(Math.max(1,f2),t0+dur);
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002,vol),t0+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+      o.connect(g); g.connect(this.masterMusic||this.master);
       o.start(t0); o.stop(t0+dur+0.05);
     }catch(e){}
   },
@@ -1190,7 +1299,7 @@ const Snd={
       g.gain.setValueAtTime(0.0001,t0);
       g.gain.exponentialRampToValueAtTime(Math.max(0.0002,vol),t0+0.012);
       g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-      s.connect(bp); bp.connect(g); g.connect(this.master);
+      s.connect(bp); bp.connect(g); g.connect(this.masterSfx||this.master);
       s.start(t0); s.stop(t0+dur+0.05);
     }catch(e){}
   },
@@ -1211,7 +1320,7 @@ const Snd={
         const lfo=ac.createOscillator(); lfo.frequency.value=0.07;
         const lg=ac.createGain(); lg.gain.value=0.02;
         lfo.connect(lg); lg.connect(g.gain);
-        g.connect(this.master);
+        g.connect(this.masterMusic||this.master);
         o1.start(); o2.start(); lfo.start();
         this.amb={g,o1,o2,lfo};
       } else if(this.amb){
@@ -1253,7 +1362,7 @@ function sndMusicStart(){
   const tick=()=>{
     if(state!=='play'){ musicT=null; return; }
     const f=MUSIC_NOTES[musicStep%MUSIC_NOTES.length];
-    if(!muted){ Snd.tone(f,1.0,'sine',0.04); Snd.tone(f,1.0,'sine',0.015,null,0.35); }
+    if(!muted){ Snd.toneM(f,1.0,'sine',0.04); Snd.toneM(f,1.0,'sine',0.015,null,0.35); }
     musicStep++;
     musicT=setTimeout(tick,1000);
   };
@@ -2072,6 +2181,7 @@ function spawnBall(){
   ring(C.LANE.X,C.LANE.Y);
   burst(C.LANE.X,C.LANE.Y,'c',6,130);
   if(!everLaunched) setHint(0);
+  resetNudge();
 }
 function resetBallAtLane(){
   ball.x=C.LANE.X; ball.y=C.LANE.Y; ball.px=C.LANE.X; ball.py=C.LANE.Y;
@@ -2105,6 +2215,7 @@ function resetGame(){
   extraBalls.length=0;
   plunger.charging=false; plunger.power=0; plunger.vis=640; plunger.tickT=0; plunger.fullNotified=false;
   redFlash=0; shakeT=0; fwT=0; endTime=0; goldFlash=0;
+  resetNudge();
   victoryT=0; victoryFwT=0; clearVictoryCrystals();
   bonus=false; bonusT=0;
   powerup=null; powerupT=POWERUP.SPAWN; magnetT=0; x10T=0; shieldActive=false; powerupMult=1;
@@ -3162,6 +3273,7 @@ const keys={L:false,R:false};
 function anyP(){ for(const v of pointers.values()) if(v==='P') return true; return false; }
 function held(side){ for(const v of pointers.values()) if(v===side) return true; return false; }
 function setFlipper(side,on){
+  if(on && tilted) return;
   const f=flippers[side==='L'?0:1];
   if(f.pressed!==on){ f.pressed=on; if(on) sndFlip(); }
 }
@@ -3205,12 +3317,82 @@ function toggleMute(){
   btnMute.setAttribute('aria-label', muted?'Activer le son':'Couper le son');
 }
 
+/* ---------- Remapping clavier (localStorage cristalDragonKeyMap) ---------- */
+const DEFAULT_KEYMAP={ left:['ArrowLeft','KeyA','KeyQ'], right:['ArrowRight','KeyL','KeyM'], launch:['Space'], nudgeUp:['ArrowUp'], nudgeDown:['ArrowDown'] };
+const ACTION_LABELS={ left:'Flipper gauche', right:'Flipper droit', launch:'Lancement', nudgeUp:'Nudge haut', nudgeDown:'Nudge bas' };
+function loadKeyMap(){
+  try{
+    const v=JSON.parse(localStorage.getItem('cristalDragonKeyMap'));
+    if(v&&typeof v==='object'){
+      const out={};
+      for(const k of ['left','right','launch','nudgeUp','nudgeDown']){
+        out[k]=Array.isArray(v[k])&&v[k].length?v[k].slice():DEFAULT_KEYMAP[k].slice();
+      }
+      return out;
+    }
+  }catch(e){}
+  return { left:DEFAULT_KEYMAP.left.slice(), right:DEFAULT_KEYMAP.right.slice(), launch:DEFAULT_KEYMAP.launch.slice(), nudgeUp:DEFAULT_KEYMAP.nudgeUp.slice(), nudgeDown:DEFAULT_KEYMAP.nudgeDown.slice() };
+}
+function saveKeyMap(m){ try{ localStorage.setItem('cristalDragonKeyMap', JSON.stringify(m)); }catch(e){} }
+let keymap=loadKeyMap();
+let keyCapture=null;
+function matchKey(code,action){ return keymap[action].includes(code); }
+function keyLabel(code){
+  return code.replace(/^Key/,'').replace(/^Arrow/,'').replace(/^Digit/,'').replace(/^Numpad/,'Num')
+             .replace('Space','Espace').replace('Escape','Échap').replace('Enter','Entrée');
+}
+function renderVolSliders(){
+  const sfx=document.getElementById('volSfx');
+  const mus=document.getElementById('volMusic');
+  if(sfx){ sfx.value=String(Math.round(Snd.volSfx*100)); const v=document.getElementById('volSfxVal'); if(v) v.textContent=sfx.value+'%'; }
+  if(mus){ mus.value=String(Math.round(Snd.volMusic*100)); const v=document.getElementById('volMusicVal'); if(v) v.textContent=mus.value+'%'; }
+}
+function renderKeyLabels(){
+  for(const a of ['left','right','launch','nudgeUp','nudgeDown']){
+    const el=document.getElementById('keyLbl-'+a);
+    if(el) el.textContent=keymap[a].map(keyLabel).join(' / ');
+  }
+}
+function beginCapture(action){
+  keyCapture=action;
+  document.querySelectorAll('[data-action="capture"]').forEach(function(b){
+    b.classList.toggle('capturing', b.dataset.target===action);
+    b.textContent = b.dataset.target===action ? 'Appuyer…' : 'Modifier';
+  });
+}
+function cancelCapture(){
+  keyCapture=null;
+  document.querySelectorAll('[data-action="capture"]').forEach(function(b){
+    b.classList.remove('capturing');
+    b.textContent='Modifier';
+  });
+}
+function applyCapturedKey(code){
+  if(!keyCapture) return;
+  const action=keyCapture;
+  for(const other of ['left','right','launch','nudgeUp','nudgeDown']){
+    if(other===action) continue;
+    if(keymap[other].includes(code)){ cancelCapture(); return; }
+  }
+  if(!keymap[action].includes(code)) keymap[action]=[code];
+  saveKeyMap(keymap);
+  cancelCapture();
+  renderKeyLabels();
+}
+function resetKeyMap(){
+  keymap={ left:DEFAULT_KEYMAP.left.slice(), right:DEFAULT_KEYMAP.right.slice(), launch:DEFAULT_KEYMAP.launch.slice(), nudgeUp:DEFAULT_KEYMAP.nudgeUp.slice(), nudgeDown:DEFAULT_KEYMAP.nudgeDown.slice() };
+  saveKeyMap(keymap);
+  renderKeyLabels();
+}
 window.addEventListener('keydown',e=>{
   if(e.repeat) return;
   const c=e.code;
-  if(c==='ArrowLeft'||c==='KeyA'||c==='KeyQ'){ Snd.ensure(); keys.L=true; if(state==='play') setFlipper('L',true); e.preventDefault(); }
-  else if(c==='ArrowRight'||c==='KeyL'||c==='KeyM'){ Snd.ensure(); keys.R=true; if(state==='play') setFlipper('R',true); e.preventDefault(); }
-  else if(c==='Space'){ Snd.ensure(); if(state==='play'&&ball&&ball.state==='lane') plunger.charging=true; e.preventDefault(); }
+  if(keyCapture){ e.preventDefault(); applyCapturedKey(c); return; }
+  if(matchKey(c,'left')){ Snd.ensure(); keys.L=true; if(state==='play') setFlipper('L',true); e.preventDefault(); }
+  else if(matchKey(c,'right')){ Snd.ensure(); keys.R=true; if(state==='play') setFlipper('R',true); e.preventDefault(); }
+  else if(matchKey(c,'launch')){ Snd.ensure(); if(state==='play'&&ball&&ball.state==='lane') plunger.charging=true; e.preventDefault(); }
+  else if(matchKey(c,'nudgeUp')){ Snd.ensure(); doNudge('up'); e.preventDefault(); }
+  else if(matchKey(c,'nudgeDown')){ Snd.ensure(); doNudge('down'); e.preventDefault(); }
   else if(c==='KeyP'||c==='Escape'){ if(state==='play') setState('pause'); else if(state==='pause') setState('play'); }
   else if(c==='KeyR'){ if(state!=='menu'){ Snd.ensure(); sndUi(); startGame(); } e.preventDefault(); }
   else if(c==='KeyN'){ Snd.ensure(); toggleMute(); }
@@ -3218,9 +3400,9 @@ window.addEventListener('keydown',e=>{
 });
 window.addEventListener('keyup',e=>{
   const c=e.code;
-  if(c==='ArrowLeft'||c==='KeyA'||c==='KeyQ'){ keys.L=false; if(!held('L')) setFlipper('L',false); }
-  else if(c==='ArrowRight'||c==='KeyL'||c==='KeyM'){ keys.R=false; if(!held('R')) setFlipper('R',false); }
-  else if(c==='Space'){ if(state==='play'&&ball&&ball.state==='lane'&&plunger.charging) launchBall(); }
+  if(matchKey(c,'left')){ keys.L=false; if(!held('L')) setFlipper('L',false); }
+  else if(matchKey(c,'right')){ keys.R=false; if(!held('R')) setFlipper('R',false); }
+  else if(matchKey(c,'launch')){ if(state==='play'&&ball&&ball.state==='lane'&&plunger.charging) launchBall(); }
 });
 controls.addEventListener('contextmenu',e=>e.preventDefault());
 
@@ -3229,6 +3411,7 @@ overlay.addEventListener('click',e=>{
   if(!b) return;
   Snd.ensure(); sndUi();
   const a=b.dataset.action;
+  if(a!=='capture' && keyCapture) cancelCapture();
   if(a==='play'){ trainingMode=false; gameMode='classic'; startGame(); }
   else if(a==='restart') startGame();
   else if(a==='training'){ trainingMode=true; startGame(); }
@@ -3252,6 +3435,9 @@ overlay.addEventListener('click',e=>{
   }
   else if(a==='achievements') setState('achievements');
   else if(a==='tutorial') setState('tutorial');
+  else if(a==='settings'){ setState('settings'); renderKeyLabels(); renderVolSliders(); }
+  else if(a==='capture'){ beginCapture(b.dataset.target); }
+  else if(a==='reset-keys'){ resetKeyMap(); }
   else if(a==='about') setState('about');
   else if(a==='resumeAsk'){ if(loadGame()!==null) setState('resume'); else { const br=document.getElementById('btnResume'); if(br) br.style.display='none'; } }
   else if(a==='resumeYes'){ if(applySave()) setState('play'); else { clearSave(); setState('menu'); } }
@@ -3332,6 +3518,24 @@ resize();
   try{ seen=sessionStorage.getItem('cristalDragonBooted')==='1'; sessionStorage.setItem('cristalDragonBooted','1'); }catch(e){}
   if(has && !seen && loadGame()!==null) setState('resume');
   else setState('menu');
+/* ---------- Sliders de volume ---------- */
+// Init volumes apres que Snd soit declare
+Snd.volSfx = volSfxInit;
+Snd.volMusic = volMusicInit;
+function bindVolSliders(){
+  const sfx=document.getElementById('volSfx');
+  const mus=document.getElementById('volMusic');
+  if(sfx && !sfx.dataset.bound){
+    sfx.dataset.bound='1';
+    sfx.addEventListener('input', function(){ Snd.ensure(); Snd.setVol(sfx.value/100, undefined); const v=document.getElementById('volSfxVal'); if(v) v.textContent=sfx.value+'%'; });
+  }
+  if(mus && !mus.dataset.bound){
+    mus.dataset.bound='1';
+    mus.addEventListener('input', function(){ Snd.ensure(); Snd.setVol(undefined, mus.value/100); const v=document.getElementById('volMusicVal'); if(v) v.textContent=mus.value+'%'; });
+  }
+}
+document.addEventListener('DOMContentLoaded', bindVolSliders);
+bindVolSliders();
 })();
 setInterval(()=>{ if(state==='play') saveGame(); },5000);
 console.log('🎮 '+NOM+' '+VERSION+' chargée');

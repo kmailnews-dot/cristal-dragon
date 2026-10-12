@@ -1,8 +1,8 @@
 ========================================
  AUDIT COMPLET — CRISTAL DRAGON
 ========================================
-Date : 10/10/2026 19:32:40
-Duree : 31.2s
+Date : 11/10/2026 22:14:18
+Duree : 27.4s
 
 ## SECTION : MENU
 PASS : 9 boutons presents (9/9) — {"jouer":true,"entr":true,"modes":true,"shop":true,"quetes":true,"tuto":true,"stats":true,"ach":true,"about":true,"resumeVisible":false,"coins":"Pièces : 0"}
@@ -29,7 +29,7 @@ PASS : gameMode=survie, bossType=ice — mode=survie boss=ice
 PASS : 1 bille, objectif 20000 — balls=1 goal=20000
 PASS : boss 8 PV — hp=8/8
 PASS : bumpers donnent 500 — base=500 gain=1000 (x2)
-PASS : effet slow (projectile -> slowT>0) — slowT=1.6000000000000014
+PASS : effet slow (projectile -> slowT>0) — slowT=1.616666666666668
 
 ## SECTION : TRAINING
 PASS : trainingMode=true — trainingMode=true
@@ -57,7 +57,7 @@ PASS : toutes les stats affichees — Parties jouées : 0 | Victoires : 0 (0 %) 
 PASS : historique present — histList=true
 
 ## SECTION : DECOR
-PASS : fond non noir — 170/170 lum.moy=52.7
+PASS : fond non noir — 170/170 lum.moy=51.7
 PASS : rails metalliques visibles (#5a5a7a) — 222 px gris
 PASS : arc violet visible — 56 px violets
 PASS : ampoules dorees clignotent — coeur=[255,209,103] haloΔ=74

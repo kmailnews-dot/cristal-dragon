@@ -1,6 +1,6 @@
 # QA COMMANDES — CRISTAL DRAGON V5
 
-Date : 2026-10-11T00:11:05.131Z
+Date : 2026-10-12T02:54:07.389Z
 
 ## Résultat
 
@@ -75,6 +75,8 @@ Aucune
     true,
     true,
     true
-  ]
+  ],
+  "nudgeCount": 0,
+  "tilted": false
 }
 ```

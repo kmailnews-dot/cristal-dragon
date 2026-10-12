@@ -493,10 +493,10 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
       let d2 = await getState();
 
       if (d2.billes === 3) {
-        pass('23. deuxième drain : 4 → 5 billes');
+        pass('23. deuxième drain : 4 → 3 billes');
       } else {
         fail(
-          '23. deuxième drain : 4 → 5 billes',
+          '23. deuxième drain : 4 → 3 billes',
           `billes=${d2.billes}`
         );
       }
@@ -531,12 +531,12 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
 
       if (d3.billes === 2 || d3.etat === 'defeat') {
         pass(
-          '24. troisième drain déclenche la fin de partie',
+          '24. troisième drain : décrément supplémentaire',
           `etat=${d3.etat}, billes=${d3.billes}`
         );
       } else {
         fail(
-          '24. troisième drain déclenche la fin de partie',
+          '24. troisième drain : décrément supplémentaire',
           JSON.stringify(d3)
         );
       }
@@ -544,8 +544,8 @@ const FILE = 'file:///home/zkk/mes-jeux/cristal-dragon.html';
       fail('18. onDrain disponible');
       fail('19. avant drain : 5 billes');
       fail('21. premier drain : 5 → 4 billes');
-      fail('22. deuxième drain : 4 → 5 billes');
-      fail('24. troisième drain déclenche la fin de partie');
+      fail('22. deuxième drain : 4 → 3 billes');
+      fail('24. troisième drain : décrément supplémentaire');
     }
 
     // ==================================================
