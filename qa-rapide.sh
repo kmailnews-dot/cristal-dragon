@@ -41,6 +41,7 @@ run_test "tests/test_v5_perfect.js"
 run_test "tests/test_v5_accessibility.js"
 run_test "tests/test_v5_audio_volumes.js"
 run_test "tests/test_v5_nudge.js"
+run_test "tests/test_v5_multiball.js"
 run_test "tests/test_v5_dragon_kill.js"
 
 echo

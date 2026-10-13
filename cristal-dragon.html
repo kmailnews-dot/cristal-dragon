@@ -2156,6 +2156,15 @@ function onDrain(){
   redFlash=0.7;
   burst(clamp(ball.x,140,260),672,'e',12,240); shake(5,0.25);
   if(trainingMode){ ball=null; setHint(-1); respawnT=0.9; return; }
+  // Multiball : si des billes extra sont en jeu, en consommer une
+  // au lieu de perdre une vie. La bille principale respawn normalement.
+  if(extraBalls.length>0){
+    extraBalls.pop();
+    ball=null;
+    setHint(-1);
+    respawnT=0.9;
+    return;
+  }
   balls--; ballsDirty=true;
   gameDrains++; stats.totalDrains++; saveStats(stats);
   if(!trainingMode) addCoins(1);
