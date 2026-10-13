@@ -200,7 +200,7 @@ section[data-p="settings"] .btn.capturing{ background:rgba(255,209,102,.25); col
       <div class="best" id="mBest">Record : 0</div>
       <div class="best" id="mGames">Parties jouées : 0</div>
       <div class="best gold" id="mCoins">Pièces : 0</div>
-      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="quests" id="btnQuests">Quêtes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="settings">Paramètres</button><button class="btn ghost" data-action="about">A propos</button></div>
+      <div class="btnrow"><button class="btn" data-action="play">JOUER</button><button class="btn ghost" data-action="training">Entraînement</button><button class="btn ghost" data-action="daily">Défi</button><button class="btn ghost" data-action="modes">Modes</button><button class="btn ghost" data-action="shop">🪙 Boutique</button><button class="btn ghost" data-action="quests" id="btnQuests">Quêtes</button><button class="btn ghost" data-action="resumeAsk" id="btnResume" style="display:none">Reprendre</button><button class="btn ghost" data-action="tutorial">Tutoriel</button><button class="btn ghost" data-action="stats">Statistiques</button><button class="btn ghost" data-action="achievements">Succès</button><button class="btn ghost" data-action="settings">Paramètres</button><button class="btn ghost" data-action="about">A propos</button></div>
     </section>
     <section class="panel" data-p="shop">
       <h1>BOUTIQUE</h1>
@@ -807,7 +807,8 @@ let trainingMode=false;
 const MODES={
   classic:{nom:'CLASSIQUE', goal:50000, balls:5, bumper:50, time:0},
   chrono:{nom:'CHRONO', goal:30000, balls:3, bumper:50, time:60},
-  survie:{nom:'SURVIE', goal:20000, balls:1, bumper:500, time:0}
+  survie:{nom:'SURVIE', goal:20000, balls:1, bumper:500, time:0},
+  defi:{nom:'DEFI DU JOUR', goal:50000, balls:5, bumper:50, time:0}
 };
 let gameMode='classic', goal=GOAL, chronoT=0, chronoShown=-1;
 let bonus=false, bonusT=0;
@@ -875,7 +876,9 @@ function extraScoreFixed(base,x,y){
   // Points FIXES : ni mult, ni combo (contrairement à addScore/scoreHit)
   score+=base; scoreDirty=true;
   if(x!==undefined) floater('+'+base,x,y,false);
-  if(score>=goal && state==='play'){ sndVictory(); buzz(60); setState('victory'); }
+  if(score>=goal && state==='play'){ sndVictory(); buzz(60);
+  if(gameMode==='defi') addDailyScore(score);
+  setState('victory'); }
 }
 function physicsExtras(dt){
   for(let k=extraBalls.length-1;k>=0;k--){
@@ -1055,10 +1058,10 @@ function doNudge(dir){
   nudgeCount++;
   if(nudgeCount>C.NUDGE.MAX){ tilted=true; setHint(7); return; }
   if(dir==='up'){
-    ball.vx+=(Math.random()*2-1)*40;
+    ball.vx+=(rngGame()*2-1)*40;
     ball.vy-=C.NUDGE.IY;
   } else {
-    ball.vx+=(Math.random()*2-1)*40;
+    ball.vx+=(rngGame()*2-1)*40;
     ball.vy+=C.NUDGE.IY;
   }
   if(ball.vy<-C.MAXV) ball.vy=-C.MAXV;
@@ -1070,13 +1073,81 @@ function resetNudge(){
   nudgeCount=0; nudgeT=0; tilted=false;
 }
 
+/* ---------- Defi quotidien : RNG seede par la date locale ---------- */
+let rngDailyState = 0;
+function dailySeed(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  return parseInt(y+m+dd, 10);
+}
+function seedDaily(s){
+  rngDailyState = (s >>> 0) || 1;
+}
+function rngDaily(){
+  // mulberry32
+  rngDailyState |= 0;
+  rngDailyState = (rngDailyState + 0x6D2B79F5) | 0;
+  let t = rngDailyState;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function rngGame(){
+  return gameMode==='defi' ? rngDaily() : Math.random();
+}
+function dailyTopKey(){ return 'cristalDragonDailyTop5'; }
+function loadDailyTop(){
+  try{
+    const v=JSON.parse(localStorage.getItem(dailyTopKey()));
+    const today=String(dailySeed());
+    if(v && typeof v==='object' && v.date===today && Array.isArray(v.scores)){
+      return {date:today, scores:v.scores.slice(0,5)};
+    }
+  }catch(e){}
+  return {date:String(dailySeed()), scores:[]};
+}
+function saveDailyTop(t){
+  try{ localStorage.setItem(dailyTopKey(), JSON.stringify(t)); }catch(e){}
+}
+function addDailyScore(s){
+  const t=loadDailyTop();
+  t.scores.push(s);
+  t.scores.sort((a,b)=>b-a);
+  t.scores=t.scores.slice(0,5);
+  t.date=String(dailySeed());
+  saveDailyTop(t);
+  return t;
+}
+function dailyTopHtml(){
+  const t=loadDailyTop();
+  if(!t.scores.length) return 'Aucun score enregistre aujourd\'hui.';
+  return t.scores.map((s,i)=>'<div class="best">'+(i+1)+'. '+fmt(s)+'</div>').join('');
+}
+function startDaily(){
+  gameMode='defi';
+  seedDaily(dailySeed());
+  startGame();
+}
+
+window.startDaily = startDaily;
+window.dailySeed = dailySeed;
+window.addDailyScore = addDailyScore;
+window.loadDailyTop = loadDailyTop;
+window.rngGame = rngGame;
+window.rngDaily = rngDaily;
+window.seedDaily = seedDaily;
+
 window.debugState=()=>JSON.stringify({
   jeu:NOM, version:VERSION, etat:state, mode:gameMode, score, billes:balls, record:best,
   mult, multT:+multT.toFixed(1), comboMult, comboT:+comboT.toFixed(1), muted,
   bille:ball?{x:Math.round(ball.x),y:Math.round(ball.y),vx:Math.round(ball.vx),vy:Math.round(ball.vy),etat:ball.state}:null,
   lanceur:{charge:plunger.charging,power:+plunger.power.toFixed(2)},
   runes:runes.map(r=>r.up),
-  nudgeCount, tilted
+  nudgeCount, tilted,
+  dailySeed: dailySeed(),
+  dailyScores: loadDailyTop().scores.slice()
 });
 
 /* ---------- Géométrie de la table ---------- */
@@ -2041,7 +2112,7 @@ function addScore(base,x,y,big){
 }
 function tryCacheBonus(x,y){
   if(cacheT>0) return;
-  if(Math.random()<0.05){
+  if(rngGame()<0.05){
     cacheMult=3; cacheT=5;
     stats.cacheBonusCount++; saveStats(stats);
     goldFlash=goldFlashM;
@@ -2101,11 +2172,11 @@ function hitRune(i){
 function spawnPowerup(){
   if(powerup || trainingMode) return;
   const types=['magnet','x10','shield'];
-  const type=types[(Math.random()*types.length)|0];
+  const type=types[(rngGame()*types.length)|0];
   // Position aleatoire sur le plateau, hors murs / lane / runes / oeil / bumpers
   let x=200, y=350;
   for(let t=0;t<24;t++){
-    const cx=70+Math.random()*240, cy=140+Math.random()*380;
+    const cx=70+rngGame()*240, cy=140+rngGame()*380;
     let ok=true;
     const avoid=[{x:158,y:218},{x:252,y:218},{x:205,y:296}];
     for(const b of avoid){ if(Math.hypot(cx-b.x,cy-b.y)<52){ ok=false; break; } }
@@ -2170,7 +2241,10 @@ function onDrain(){
   if(!trainingMode) addCoins(1);
   ball=null;
   setHint(-1);
-  if(balls<=0){ sndDefeat(); setState('defeat'); }
+  if(balls<=0){ sndDefeat();
+    if(gameMode==='defi') addDailyScore(score);
+    setState('defeat');
+  }
   else respawnT=0.9;
 }
 function launchBall(){
@@ -2201,6 +2275,7 @@ function resetBallAtLane(){
 function resetGame(){
   clearSave();
   sndMusicStop();
+  if(gameMode==='defi') seedDaily(dailySeed());
   score=0; balls=MODES[gameMode].balls; goal=MODES[gameMode].goal; chronoT=MODES[gameMode].time; chronoShown=-1; mult=1; multT=0; comboMult=1; comboT=0; cacheMult=1; cacheT=0; perfectShown=false;
   gameComboMax=1;
   scoreDirty=true; ballsDirty=true;
@@ -2464,7 +2539,7 @@ function physics(dt){
     if(Math.hypot(ball.vx,ball.vy)<C.STUCK.SPD) ball.stuckT+=dt; else ball.stuckT=0;
     if(ball.stuckT>C.STUCK.T){
       ball.stuckT=0;
-      ball.vx+=(Math.random()*2-1)*C.STUCK.NX; ball.vy-=C.STUCK.NY;
+      ball.vx+=(rngGame()*2-1)*C.STUCK.NX; ball.vy-=C.STUCK.NY;
       sndNudge(); shake(3,0.15);
     }
   }
@@ -3424,6 +3499,7 @@ overlay.addEventListener('click',e=>{
   if(a==='play'){ trainingMode=false; gameMode='classic'; startGame(); }
   else if(a==='restart') startGame();
   else if(a==='training'){ trainingMode=true; startGame(); }
+  else if(a==='daily'){ trainingMode=false; startDaily(); }
   else if(a==='modes') setState('modes');
   else if(a==='mode-classic'){ gameMode='classic'; trainingMode=false; startGame(); }
   else if(a==='mode-chrono'){ gameMode='chrono'; trainingMode=false; startGame(); }
