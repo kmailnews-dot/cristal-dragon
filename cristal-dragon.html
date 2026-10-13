@@ -299,6 +299,15 @@ section[data-p="settings"] .btn.capturing{ background:rgba(255,209,102,.25); col
         <span class="val" id="keyLbl-nudgeDown"></span>
         <button class="btn small" data-action="capture" data-target="nudgeDown">Modifier</button>
       </div>
+      <div class="sub" style="margin-top:calc(var(--u)*14px)">Palette de couleurs</div>
+      <div class="row">
+        <span class="lbl">Couleurs</span>
+        <select id="paletteSelect" style="background:rgba(255,255,255,.07);color:#cfd6ff;border:1px solid rgba(255,255,255,.15);border-radius:calc(var(--u)*8px);padding:calc(var(--u)*6px) calc(var(--u)*10px)">
+          <option value="default">Défaut</option>
+          <option value="deuteranopie">Deutéranopie</option>
+          <option value="protanopie">Protanopie</option>
+        </select>
+      </div>
       <div class="sub" style="margin-top:calc(var(--u)*14px)">Volume</div>
       <div class="row">
         <span class="lbl">Effets sonores</span>
@@ -1177,6 +1186,24 @@ const slings=[
   {x1:55, y1:505, x2:95, y2:555, r:8, e:C.SLING.E, kick:C.SLING.KICK, flash:0, cd:0},
   {x1:301,y1:505, x2:261,y2:555, r:8, e:C.SLING.E, kick:C.SLING.KICK, flash:0, cd:0}
 ];
+/* ---------- Palettes (accessibilite daltonisme) ---------- */
+const PALETTES={
+  default:{
+    COL:{c:'#4fd8ff',m:'#ff5fd0',v:'#a06bff',g:'#ffd166',w:'#ffffff',e:'#ff7a3c'},
+    LIGHT:{c:'#c9f6ff',m:'#ffcdf1',v:'#ddc8ff',g:'#ffedbb',w:'#ffffff',e:'#ff7a3c'}
+  },
+  deuteranopie:{
+    COL:{c:'#3aa0ff',m:'#ff9a3c',v:'#a06bff',g:'#ffd166',w:'#ffffff',e:'#ff6a00'},
+    LIGHT:{c:'#b8dcff',m:'#ffd9a8',v:'#ddc8ff',g:'#ffedbb',w:'#ffffff',e:'#ffb066'}
+  },
+  protanopie:{
+    COL:{c:'#2f8fff',m:'#ffd166',v:'#8a6bff',g:'#ffea8a',w:'#ffffff',e:'#ffb347'},
+    LIGHT:{c:'#b0d4ff',m:'#fff0b8',v:'#d4c4ff',g:'#fff5c8',w:'#ffffff',e:'#ffd9a8'}
+  }
+};
+let currentPalette=(()=>{ try{ return localStorage.getItem('cristalDragonPalette')||'default'; }catch(e){ return 'default'; } })();
+if(!PALETTES[currentPalette]) currentPalette='default';
+
 const COL={c:'#4fd8ff',m:'#ff5fd0',v:'#a06bff',g:'#ffd166',w:'#ffffff',e:'#ff7a3c'};
 const LIGHT={c:'#c9f6ff',m:'#ffcdf1',v:'#ddc8ff',g:'#ffedbb',w:'#ffffff',e:'#ff7a3c'};
 const bumpers=[
@@ -3607,6 +3634,30 @@ resize();
 // Init volumes apres que Snd soit declare
 Snd.volSfx = volSfxInit;
 Snd.volMusic = volMusicInit;
+function setPalette(name){
+  if(!PALETTES[name]) return false;
+  currentPalette=name;
+  try{ localStorage.setItem('cristalDragonPalette', name); }catch(e){}
+  Object.assign(COL, PALETTES[name].COL);
+  Object.assign(LIGHT, PALETTES[name].LIGHT);
+  try{
+    if(typeof makeBumper==='function' && typeof SPR!=='undefined' && SPR && SPR.bumper && typeof bumpers!=='undefined'){
+      for(const b of bumpers){ SPR.bumper[b.hue]=makeBumper(b.hue,false); }
+    }
+    if(typeof makeDot==='function' && typeof SPR!=='undefined' && SPR && SPR.dot){
+      for(const k of ['c','m','v','g','w','e']) SPR.dot[k]=makeDot(COL[k]);
+    }
+  }catch(e){}
+  return true;
+}
+function bindPaletteSelect(){
+  const sel=document.getElementById('paletteSelect');
+  if(sel && !sel.dataset.bound){
+    sel.dataset.bound='1';
+    sel.value=currentPalette;
+    sel.addEventListener('change', function(){ setPalette(sel.value); });
+  }
+}
 function bindVolSliders(){
   const sfx=document.getElementById('volSfx');
   const mus=document.getElementById('volMusic');
@@ -3619,8 +3670,12 @@ function bindVolSliders(){
     mus.addEventListener('input', function(){ Snd.ensure(); Snd.setVol(undefined, mus.value/100); const v=document.getElementById('volMusicVal'); if(v) v.textContent=mus.value+'%'; });
   }
 }
-document.addEventListener('DOMContentLoaded', bindVolSliders);
+document.addEventListener('DOMContentLoaded', function(){ bindVolSliders(); bindPaletteSelect(); });
 bindVolSliders();
+
+window.setPalette = setPalette;
+window.getPalette = ()=>currentPalette;
+window.PALETTES = PALETTES;
 })();
 setInterval(()=>{ if(state==='play') saveGame(); },5000);
 console.log('🎮 '+NOM+' '+VERSION+' chargée');

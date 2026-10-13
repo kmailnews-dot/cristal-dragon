@@ -37,7 +37,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
     // 3. Trois lignes visibles
     const rows = await page.$$('section[data-p="settings"] .row');
-    rows.length === 7 ? ok('3. sept lignes (5 commandes + 2 volumes) affichées') : ko('3. sept lignes', 'count=' + rows.length);
+    rows.length === 8 ? ok('3. huit lignes (5 commandes + palette + 2 volumes) affichées') : ko('3. huit lignes', 'count=' + rows.length);
 
     // 4. Défauts affichés
     const lblL = await page.textContent('#keyLbl-left');

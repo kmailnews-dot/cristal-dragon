@@ -37,6 +37,7 @@ run_volumes(){ node tests/test_v5_audio_volumes.js 2>&1 | tail -12; }
 run_nudge(){ node tests/test_v5_nudge.js 2>&1 | tail -12; }
 run_multiball(){ node tests/test_v5_multiball.js 2>&1 | tail -12; }
 run_defi(){ node tests/test_v5_defi.js 2>&1 | tail -12; }
+run_palette(){ node tests/test_v5_palette.js 2>&1 | tail -12; }
 run_qa(){ bash qa-rapide.sh 2>&1 | tail -8; }
 
 step "Syntaxe JavaScript" check_syntax
@@ -45,6 +46,7 @@ step "Volumes (11 checks)" run_volumes
 step "Nudge / Tilt (9 checks)" run_nudge
 step "Multiball (6 checks)" run_multiball
 step "Defi quotidien (9 checks)" run_defi
+step "Palette daltonien (11 checks)" run_palette
 step "QA rapide (19 fichiers Playwright)" run_qa
 
 echo ""

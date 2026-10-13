@@ -43,6 +43,7 @@ run_test "tests/test_v5_audio_volumes.js"
 run_test "tests/test_v5_nudge.js"
 run_test "tests/test_v5_multiball.js"
 run_test "tests/test_v5_defi.js"
+run_test "tests/test_v5_palette.js"
 run_test "tests/test_v5_dragon_kill.js"
 
 echo
